@@ -19,3 +19,14 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+# --- Moto Crash Guardian ---
+# Conservar numeros de linea para leer los stack traces de Play Console
+# (subir mapping.txt de build/outputs/mapping/release con cada version).
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
+
+# Proto DataStore (Fase 1): los mensajes generados se acceden por reflexion.
+-keep class * extends com.google.protobuf.GeneratedMessageLite { *; }
+
+# Hilt, Room, Retrofit 3, OkHttp 5 y kotlinx.serialization traen sus reglas de consumidor.
+# Agregar aqui solo reglas verificadas con un build release real.

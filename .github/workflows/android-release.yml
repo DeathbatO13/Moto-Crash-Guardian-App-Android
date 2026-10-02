@@ -1,0 +1,79 @@
+name: Android Release (APK)
+
+# Publica un tag vX.Y.Z (p. ej. v0.1.0) para generar el APK release firmado y adjuntarlo
+# a un GitHub Release. Distribucion directa (sideload); no se publica en Google Play.
+# Ver docs/DISTRIBUCION_APK.md.
+on:
+  push:
+    tags: ["v*.*.*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write   # Crear el GitHub Release con el APK.
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    environment: release
+    env:
+      MCG_UPLOAD_STORE_FILE: app/release.jks
+      MCG_UPLOAD_STORE_PASSWORD: ${{ secrets.MCG_UPLOAD_STORE_PASSWORD }}
+      MCG_UPLOAD_KEY_ALIAS: ${{ secrets.MCG_UPLOAD_KEY_ALIAS }}
+      MCG_UPLOAD_KEY_PASSWORD: ${{ secrets.MCG_UPLOAD_KEY_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Restaurar llave de firma
+        run: echo "${{ secrets.MCG_UPLOAD_KEYSTORE_BASE64 }}" | base64 --decode > app/release.jks
+
+      - name: Calcular version
+        id: version
+        run: |
+          # versionCode monotono para que cada APK se instale encima del anterior.
+          echo "code=$((100 + GITHUB_RUN_NUMBER))" >> "$GITHUB_OUTPUT"
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+            echo "name=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=$(grep '^mcg.versionName=' gradle.properties | cut -d= -f2)" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Pruebas y APK release firmado
+        run: >
+          chmod +x gradlew && ./gradlew --no-daemon testDebugUnitTest assembleRelease
+          -Pmcg.versionCode=${{ steps.version.outputs.code }}
+          -Pmcg.versionName=${{ steps.version.outputs.name }}
+
+      - name: Borrar llave del runner
+        if: always()
+        run: rm -f app/release.jks
+
+      - name: Renombrar APK y calcular SHA-256
+        id: apk
+        run: |
+          name="moto-crash-guardian-${{ steps.version.outputs.name }}.apk"
+          cp app/build/outputs/apk/release/app-release.apk "$name"
+          sha256sum "$name" > "$name.sha256"
+          echo "file=$name" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ steps.version.outputs.name }}
+          path: |
+            ${{ steps.apk.outputs.file }}
+            ${{ steps.apk.outputs.file }}.sha256
+            app/build/outputs/mapping/release/mapping.txt
+
+      - name: Crear GitHub Release
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          gh release create "$GITHUB_REF_NAME"
+          "${{ steps.apk.outputs.file }}" "${{ steps.apk.outputs.file }}.sha256"
+          --title "Moto Crash Guardian $GITHUB_REF_NAME"
+          --notes "APK firmado para instalacion directa. Verificar SHA-256 antes de instalar."

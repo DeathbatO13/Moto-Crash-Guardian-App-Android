@@ -2,15 +2,18 @@
 
 Este roadmap convierte `docs/` y `specs/features/` en trabajo ejecutable para `App Android/`. Las prioridades siguen el MVP: primero la ruta de emergencia local; la sincronizacion con el backend nunca debe bloquearla.
 
-**Estado de partida:** el modulo ya usa Kotlin, Jetpack Compose, Hilt y Java 21; `minSdk 26`, `compileSdk/targetSdk 36`. La aplicacion aun muestra una pantalla de saludo y solo tiene una prueba de ejemplo. El firmware no existe todavia en este workspace, por lo que las pruebas Android de protocolo deben empezar con vectores y fakes, y la integracion fisica queda como gate compartido.
+**Estado de partida:** el modulo ya usa Kotlin, Jetpack Compose, Hilt y Java 21; `minSdk 26`, `compileSdk/targetSdk 36`. La aplicacion muestra una pantalla de inicio minima; la base de pruebas (JUnit 5 + Robolectric/Compose) y las convenciones de paquetes estan definidas. El firmware no existe todavia en este workspace, por lo que las pruebas Android de protocolo deben empezar con vectores y fakes, y la integracion fisica queda como gate compartido.
 
 ## Fase 0 — Base verificable
 
-- [ ] Ejecutar las tareas `testDebugUnitTest` y `assembleDebug` del Gradle Wrapper en Windows; registrar cualquier bloqueo de SDK, Gradle o dependencias.
-- [ ] Alinear las dependencias y el runner de pruebas con `docs/05-app-architecture.md` y `docs/09-testing-strategy.md` (JUnit 5, coroutines-test, Turbine, MockK, Robolectric y Compose UI Test); retirar dependencias de plantilla que no se usen.
-- [ ] Configurar variantes debug/release y `BASE_URL`; permitir cleartext solo para `10.0.2.2` en debug y exigir HTTPS en release.
-- [ ] Definir estructura y convenciones de paquetes descritas en `docs/05-app-architecture.md`; mantener `ble/protocol` y `detection` independientes de Android.
-- [ ] Anadir CI para `lint`, pruebas unitarias y `assembleDebug` por cambios en `App Android/`.
+- [ ] Ejecutar `testDebugUnitTest` y `assembleDebug` con el Gradle Wrapper en Windows. **Bloqueo registrado (29-sep):** la maquina de desarrollo no tiene Android SDK/Android Studio, por lo que AGP no puede configurar el proyecto; se valida instalando Android Studio o con el CI (`android-ci.yml`) al subir el repo.
+- [x] Alinear dependencias y runner con `docs/05-app-architecture.md` y `docs/09-testing-strategy.md`: JUnit 5 (BOM 5.13.4 + `junit-platform-launcher`, obligatorio en Gradle 9), JUnit Vintage para Robolectric/Compose UI Test en JVM, coroutines-test, Turbine y MockK; retiradas AppCompat, ConstraintLayout, Material Components, `activity_main.xml` y la prueba de ejemplo (el tema de ventana usa `android:Theme.Material.*`).
+- [x] Configurar variantes debug/release y `BASE_URL`; permitir cleartext solo para `10.0.2.2` en debug y exigir HTTPS en release (`BuildConfigTest`; pendiente de verlo en verde con un build real).
+- [x] Definir estructura y convenciones de paquetes (README, seccion *Paquetes y convenciones*; `di/` agregado, tema y home en `ui/`); `ArchitectureConventionsTest` impide que `ble/protocol`, `detection` y `core/model` dependan de Android/Hilt.
+- [x] Anadir CI para `lint`, pruebas unitarias y `assembleDebug` (`.github/workflows/android-ci.yml`).
+- [x] Configurar firma de release fuera del repo, R8 y workflow de APK firmado con GitHub Release (`docs/DISTRIBUCION_APK.md`).
+- [ ] Generar `mcg-release.jks` (respaldada fuera del repo) e instalar un APK release en telefono real antes del 9-oct para detectar problemas de R8.
+- [x] Decidir distribucion para la sustentacion (19-oct-2026): APK firmado por sideload, sin Google Play; las restricciones de politica de Play sobre `SEND_SMS` quedan para una publicacion futura (`docs/PLAY_STORE.md`).
 
 **Salida:** build reproducible y una base de pruebas que corre sin dispositivo BLE.
 
@@ -82,7 +85,7 @@ Este roadmap convierte `docs/` y `specs/features/` en trabajo ejecutable para `A
 - [ ] Implementar ajustes, privacidad/borrado local-remoto y diagnostico BLE; asegurar que logs no contengan nombres, telefonos, coordenadas ni tokens.
 - [ ] Completar pruebas Compose, matriz API 26/31/33/34/36 y fabricantes; medir consumo, robustez de FGS y accesibilidad NFR-014.
 - [ ] Ejecutar pruebas de campo: 9/10 caidas simuladas y 0 countdowns en 50 km; registrar evidencia en la bitacora del proyecto.
-- [ ] Generar APK release firmado, documentar instalacion/llaves fuera del repositorio y ensayar dos veces el guion de demo.
+- [ ] Generar el APK release firmado de entrega (`v1.0.0`) siguiendo el cronograma de `docs/DISTRIBUCION_APK.md` §4 y ensayar dos veces el guion de demo.
 
 **Salida MVP:** P0 aprobado, API sincronizando en segundo plano, APK instalable y evidencia de NFR-004/006/007.
 
@@ -90,7 +93,7 @@ Este roadmap convierte `docs/` y `specs/features/` en trabajo ejecutable para `A
 
 - [ ] Confirmar firmware BLE v1 y usar los mismos vectores de prueba en ambos lados antes de la integracion fisica.
 - [ ] Confirmar telefonos/SIM de prueba, cableado y dispositivo real; hasta entonces usar fakes y pruebas de contrato.
-- [ ] Confirmar URL/entorno del Backend y contrato OpenAPI antes de habilitar sincronizacion.
+- [ ] Confirmar URL/entorno del Backend (deploy en Render el 13-oct) y contrato OpenAPI antes de habilitar sincronizacion; recompilar el APK con `mcg.apiBaseUrl` real.
 
 ## Referencias
 
