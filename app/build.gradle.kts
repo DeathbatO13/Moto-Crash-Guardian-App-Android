@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -5,6 +7,25 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.hilt)
 }
+
+// Firma de release: keystore.properties local (ignorado por Git) o variables de entorno en CI.
+// Ver docs/DISTRIBUCION_APK.md. Sin estos valores el APK release sale sin firmar y no se puede instalar.
+val keystoreProperties = Properties().apply {
+    val file = rootProject.file("keystore.properties")
+    if (file.exists()) file.inputStream().use(::load)
+}
+
+fun signingValue(key: String, env: String): String? =
+    keystoreProperties.getProperty(key) ?: System.getenv(env)
+
+val uploadStoreFile = signingValue("storeFile", "MCG_UPLOAD_STORE_FILE")
+
+val apiBaseUrl = providers.gradleProperty("mcg.apiBaseUrl").get()
+require(apiBaseUrl.startsWith("https://") && apiBaseUrl.endsWith("/")) {
+    "mcg.apiBaseUrl debe ser HTTPS y terminar en '/': $apiBaseUrl"
+}
+val appVersionCode = providers.gradleProperty("mcg.versionCode").get().toInt()
+val appVersionName = providers.gradleProperty("mcg.versionName").get()
 
 android {
     namespace = "com.motocrashguardian"
@@ -18,19 +39,50 @@ android {
         applicationId = "com.motocrashguardian"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = appVersionCode
+        versionName = appVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        if (uploadStoreFile != null) {
+            create("release") {
+                storeFile = rootProject.file(uploadStoreFile)
+                storePassword = signingValue("storePassword", "MCG_UPLOAD_STORE_PASSWORD")
+                keyAlias = signingValue("keyAlias", "MCG_UPLOAD_KEY_ALIAS")
+                keyPassword = signingValue("keyPassword", "MCG_UPLOAD_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
+        debug {
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+            // Backend local desde el emulador; cleartext solo permitido en src/debug.
+            buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:8080/\"")
+        }
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            buildConfigField("String", "BASE_URL", "\"$apiBaseUrl\"")
+            signingConfigs.findByName("release")?.let { signingConfig = it }
+        }
+    }
+    buildFeatures {
+        buildConfig = true
+        compose = true
+    }
+    testOptions {
+        unitTests {
+            // Robolectric necesita los recursos/manifest mergeados.
+            isIncludeAndroidResources = true
+            all { it.useJUnitPlatform() }
         }
     }
     compileOptions {
@@ -45,7 +97,6 @@ kotlin {
 
 dependencies {
     implementation(libs.androidx.core.ktx)
-    implementation(libs.material)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
@@ -70,11 +121,20 @@ dependencies {
     implementation(libs.okhttp.logging)
     implementation(libs.kotlinx.serialization.json)
 
-    testImplementation(libs.junit)
+    // Pruebas JVM (docs/09-testing-strategy.md): JUnit 5 para logica pura; Robolectric y
+    // Compose UI Test siguen en JUnit 4 y corren sobre la misma plataforma via Vintage.
+    testImplementation(platform(libs.junit5.bom))
+    testImplementation(libs.junit5.jupiter)
+    testImplementation(libs.junit4)
+    testRuntimeOnly(libs.junit5.vintage.engine)
+    testRuntimeOnly(libs.junit5.platform.launcher)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mockk)
     testImplementation(libs.turbine)
     testImplementation(libs.robolectric)
+    testImplementation(platform(libs.androidx.compose.bom))
+    testImplementation(libs.androidx.compose.ui.test.junit4)
+
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

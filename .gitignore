@@ -17,3 +17,9 @@ local.properties
 # Keep project documentation tracked even if global ignore rules match Markdown.
 !README.md
 !ROADMAP.md
+
+# Firma de release (nunca versionar)
+keystore.properties
+*.jks
+*.keystore
+play-service-account*.json
