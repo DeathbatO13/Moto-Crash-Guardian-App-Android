@@ -20,9 +20,10 @@ Este roadmap convierte `docs/` y `specs/features/` en trabajo ejecutable para `A
 ## Fase 1 — Dominio local y persistencia
 
 - [x] Crear modelos Kotlin puros de dominio para `Telemetry`, `DeviceEvent`, `DetectionConfig`, `AppSettings`, `Incident`, `Trace` y estados/enums compartidos según `docs/03-bluetooth-spec.md` y `docs/04-data-model.md`.
-- [ ] Implementar Proto DataStore y `SettingsRepository`: valores por defecto, rangos, contactos, consentimiento, estado del viaje y cambios pendientes; agregar el soporte de protobuf que falta en el build.
-- [ ] Implementar Room (`incidents`, `incident_traces`), DAOs, migraciones y retencion local; verificar deduplicacion por `bootCount:eventId` y UUID de incidente.
-- [ ] Probar persistencia, migraciones, borrado en cascada y reanudacion despues de recrear proceso con Robolectric/Room.
+- [x] Implementar Proto DataStore (`settings.pb`) y `SettingsRepository`: valores por defecto, rangos, contactos, consentimiento, estado del viaje y cambios pendientes; generar protobuf lite y enlazar el store con Hilt.
+- [x] Implementar Room (`incidents`, `incident_traces`), DAOs y repositorio local; exportar el esquema v1 y enlazar la base singleton con Hilt.
+- [x] Probar round-trip de incidentes/trazas, reapertura de la base, deduplicacion por `bootCount:eventId`, cascada y politicas de retencion con Robolectric.
+- [x] Agregar migracion Room v1→v2 para el deadline de cuenta regresiva y probar su preservacion junto con la reanudacion despues de recrear proceso.
 
 **Salida:** preferencias e incidentes locales son la fuente de verdad y sobreviven a reinicios.
 
@@ -30,11 +31,13 @@ Este roadmap convierte `docs/` y `specs/features/` en trabajo ejecutable para `A
 
 - [ ] Implementar UUIDs, enums, parsers y encoders little-endian para `DEVICE_INFO`, `TELEMETRY`, `EVENT`, `CONFIG`, `CONTROL_POINT`, `GPS` y `TRACE`, validando longitud y version de protocolo.
 - [ ] Copiar los vectores hexadecimales de `specs/features/telemetry-streaming.md` sin alterarlos y probar resultados, bytes malformados, version futura y wrap de `seq`.
-- [ ] Implementar `ConfirmationEngine` puro con reglas R1-R7, ventana de telemetria, reloj inyectable, velocidad fiable, modo demo y fallo hacia avisar con cobertura menor al 50%.
-- [ ] Implementar `GuardianStateMachine` con entradas secuenciales, persistencia antes de efectos, un incidente activo, eventos repetidos y reanudacion de cuenta regresiva.
-- [ ] Cubrir los casos obligatorios de `docs/09-testing-strategy.md` y los criterios de `specs/features/crash-detection.md` con pruebas deterministas.
+- [x] Implementar `ConfirmationEngine` puro con reglas R1-R7, ventana de telemetria, reloj inyectable, velocidad fiable, modo demo y fallo hacia avisar con cobertura menor al 50%.
+- [x] Implementar `GuardianStateMachine` con entradas secuenciales, persistencia antes de efectos, un incidente activo, eventos repetidos y reanudacion de cuenta regresiva.
+- [x] Cubrir los casos obligatorios de `docs/09-testing-strategy.md` y los criterios de `specs/features/crash-detection.md` con pruebas deterministas.
 
 **Salida:** los contratos de bytes y las decisiones criticas se validan sin Android ni hardware.
+
+La maquina de estados ya está implementada y probada de forma local; falta conectarla al `GuardianService` cuando se implemente T-1.05. El protocolo BLE (T-1.02) sigue siendo independiente y pendiente.
 
 ## Fase 3 — Descubrimiento, conexion y viaje
 

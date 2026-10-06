@@ -1,0 +1,239 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "81fa63854a53c50aef926b06cf687dd3",
+    "entities": [
+      {
+        "tableName": "incidents",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `type` TEXT NOT NULL, `trigger_type` TEXT NOT NULL, `status` TEXT NOT NULL, `device_event_key` TEXT, `detected_at` INTEGER NOT NULL, `resolved_at` INTEGER, `peak_accel_mg` INTEGER, `peak_gyro_dps` INTEGER, `pitch_cdeg` INTEGER, `roll_cdeg` INTEGER, `lat` REAL, `lng` REAL, `location_accuracy_m` REAL, `location_source` TEXT NOT NULL, `location_fix_at` INTEGER, `sms_primary` TEXT NOT NULL, `sms_secondary` TEXT NOT NULL, `call_status` TEXT NOT NULL, `firmware_version` TEXT, `sync_state` TEXT NOT NULL, `sync_attempts` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "triggerType",
+            "columnName": "trigger_type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "deviceEventKey",
+            "columnName": "device_event_key",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "detectedAtEpochMillis",
+            "columnName": "detected_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "resolvedAtEpochMillis",
+            "columnName": "resolved_at",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "peakAccelMg",
+            "columnName": "peak_accel_mg",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "peakGyroDps",
+            "columnName": "peak_gyro_dps",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "pitchCdeg",
+            "columnName": "pitch_cdeg",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "rollCdeg",
+            "columnName": "roll_cdeg",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "lat",
+            "columnName": "lat",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "lng",
+            "columnName": "lng",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "locationAccuracyMeters",
+            "columnName": "location_accuracy_m",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "locationSource",
+            "columnName": "location_source",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "locationFixAtEpochMillis",
+            "columnName": "location_fix_at",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "primarySmsStatus",
+            "columnName": "sms_primary",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "secondarySmsStatus",
+            "columnName": "sms_secondary",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "callStatus",
+            "columnName": "call_status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "firmwareVersion",
+            "columnName": "firmware_version",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "syncState",
+            "columnName": "sync_state",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "syncAttempts",
+            "columnName": "sync_attempts",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_incidents_device_event_key",
+            "unique": true,
+            "columnNames": [
+              "device_event_key"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_incidents_device_event_key` ON `${TABLE_NAME}` (`device_event_key`)"
+          },
+          {
+            "name": "index_incidents_detected_at",
+            "unique": false,
+            "columnNames": [
+              "detected_at"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_incidents_detected_at` ON `${TABLE_NAME}` (`detected_at`)"
+          }
+        ]
+      },
+      {
+        "tableName": "incident_traces",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`incident_id` TEXT NOT NULL, `sample_rate_hz` INTEGER NOT NULL, `pre_trigger_samples` INTEGER NOT NULL, `total_samples` INTEGER NOT NULL, `accel_lsb_per_g` INTEGER NOT NULL, `gyro_lsb_per_dps_x10` INTEGER NOT NULL, `samples` BLOB NOT NULL, `sync_state` TEXT NOT NULL, PRIMARY KEY(`incident_id`), FOREIGN KEY(`incident_id`) REFERENCES `incidents`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "incidentId",
+            "columnName": "incident_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sampleRateHz",
+            "columnName": "sample_rate_hz",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "preTriggerSamples",
+            "columnName": "pre_trigger_samples",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "totalSamples",
+            "columnName": "total_samples",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "accelLsbPerG",
+            "columnName": "accel_lsb_per_g",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "gyroLsbPerDpsX10",
+            "columnName": "gyro_lsb_per_dps_x10",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "samples",
+            "columnName": "samples",
+            "affinity": "BLOB",
+            "notNull": true
+          },
+          {
+            "fieldPath": "syncState",
+            "columnName": "sync_state",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "incident_id"
+          ]
+        },
+        "foreignKeys": [
+          {
+            "table": "incidents",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "incident_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '81fa63854a53c50aef926b06cf687dd3')"
+    ]
+  }
+}

@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+package mcg.settings;
+
+option java_package = "com.motocrashguardian.data.settings.proto";
+option java_multiple_files = true;
+option java_outer_classname = "SettingsProto";
+
+message AppSettingsProto {
+  string rider_name = 1;
+  EmergencyContactProto primary_contact = 2;
+  EmergencyContactProto secondary_contact = 3;
+  DetectionConfigProto detection = 4;
+  optional int32 countdown_seconds = 5;
+  bool demo_mode = 6;
+  bool drill_place_call = 7;
+  optional string paired_device_address = 8;
+  DeviceInfoProto paired_device_info = 9;
+  bool trip_active = 10;
+  bool onboarding_completed = 11;
+  bool consent_accepted_at_present = 12;
+  int64 consent_accepted_at_epoch_millis = 13;
+  bool config_dirty = 14;
+  bool contacts_dirty = 15;
+}
+
+message EmergencyContactProto {
+  ContactRoleProto role = 1;
+  string name = 2;
+  string phone_e164 = 3;
+}
+
+enum ContactRoleProto {
+  CONTACT_ROLE_UNSPECIFIED = 0;
+  CONTACT_ROLE_PRIMARY = 1;
+  CONTACT_ROLE_SECONDARY = 2;
+}
+
+message DetectionConfigProto {
+  int32 impact_threshold_mg = 1;
+  int32 gyro_threshold_dps = 2;
+  int32 tilt_threshold_deg = 3;
+  int32 tilt_hold_ms = 4;
+  bool tilt_detection_enabled = 5;
+  int32 severe_impact_threshold_mg = 6;
+  int32 confirm_window_ms = 7;
+  int32 stillness_tolerance_mg = 8;
+  int32 pitch_offset_cdeg = 9;
+  int32 roll_offset_cdeg = 10;
+}
+
+message DeviceInfoProto {
+  int32 protocol_version = 1;
+  int32 firmware_major = 2;
+  int32 firmware_minor = 3;
+  int32 firmware_patch = 4;
+  int32 hardware_revision = 5;
+  int32 capabilities = 6;
+  int32 boot_count = 7;
+  string device_id = 8;
+}

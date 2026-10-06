@@ -109,6 +109,7 @@ data class Incident(
     val deviceEventKey: String? = null,
     val detectedAt: Instant,
     val resolvedAt: Instant? = null,
+    val countdownDeadline: Instant? = null,
     val peakAccelMg: Int? = null,
     val peakGyroDps: Int? = null,
     val pitchCdeg: Int? = null,
