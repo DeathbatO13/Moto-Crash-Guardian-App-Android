@@ -4,11 +4,11 @@ Este roadmap convierte `docs/` y `specs/features/` en trabajo ejecutable para `A
 
 **Estado de partida:** el modulo ya usa Kotlin, Jetpack Compose, Hilt y Java 21; `minSdk 26`, `compileSdk/targetSdk 36`. La aplicacion muestra una pantalla de inicio minima; la base de pruebas (JUnit 5 + Robolectric/Compose) y las convenciones de paquetes estan definidas. El firmware no existe todavia en este workspace, por lo que las pruebas Android de protocolo deben empezar con vectores y fakes, y la integracion fisica queda como gate compartido.
 
-## Fase 0 — Base verificable
+## Fase 0 — Base verificable (Completada)
 
-- [ ] Ejecutar `testDebugUnitTest` y `assembleDebug` con el Gradle Wrapper en Windows. **Bloqueo registrado (29-sep):** la maquina de desarrollo no tiene Android SDK/Android Studio, por lo que AGP no puede configurar el proyecto; se valida instalando Android Studio o con el CI (`android-ci.yml`) al subir el repo.
+- [x] Ejecutar `testDebugUnitTest` y `assembleDebug` con el Gradle Wrapper en Windows (bloqueo superado mediante configuracion de `local.properties` con Android SDK API 36/36.1 local).
 - [x] Alinear dependencias y runner con `docs/05-app-architecture.md` y `docs/09-testing-strategy.md`: JUnit 5 (BOM 5.13.4 + `junit-platform-launcher`, obligatorio en Gradle 9), JUnit Vintage para Robolectric/Compose UI Test en JVM, coroutines-test, Turbine y MockK; retiradas AppCompat, ConstraintLayout, Material Components, `activity_main.xml` y la prueba de ejemplo (el tema de ventana usa `android:Theme.Material.*`).
-- [x] Configurar variantes debug/release y `BASE_URL`; permitir cleartext solo para `10.0.2.2` en debug y exigir HTTPS en release (`BuildConfigTest`; pendiente de verlo en verde con un build real).
+- [x] Configurar variantes debug/release y `BASE_URL`; permitir cleartext solo para `10.0.2.2` en debug y exigir HTTPS en release (`BuildConfigTest` verificado en verde).
 - [x] Definir estructura y convenciones de paquetes (README, seccion *Paquetes y convenciones*; `di/` agregado, tema y home en `ui/`); `ArchitectureConventionsTest` impide que `ble/protocol`, `detection` y `core/model` dependan de Android/Hilt.
 - [x] Anadir CI para `lint`, pruebas unitarias y `assembleDebug` (`.github/workflows/android-ci.yml`).
 - [x] Configurar firma de release fuera del repo, R8 y workflow de APK firmado con GitHub Release (`docs/DISTRIBUCION_APK.md`).
@@ -19,7 +19,7 @@ Este roadmap convierte `docs/` y `specs/features/` en trabajo ejecutable para `A
 
 ## Fase 1 — Dominio local y persistencia
 
-- [ ] Crear modelos de dominio para `Telemetry`, `DeviceEvent`, `DetectionConfig`, `AppSettings`, `Incident`, `Trace` y estados/enums compartidos con `docs/04-data-model.md`.
+- [x] Crear modelos Kotlin puros de dominio para `Telemetry`, `DeviceEvent`, `DetectionConfig`, `AppSettings`, `Incident`, `Trace` y estados/enums compartidos según `docs/03-bluetooth-spec.md` y `docs/04-data-model.md`.
 - [ ] Implementar Proto DataStore y `SettingsRepository`: valores por defecto, rangos, contactos, consentimiento, estado del viaje y cambios pendientes; agregar el soporte de protobuf que falta en el build.
 - [ ] Implementar Room (`incidents`, `incident_traces`), DAOs, migraciones y retencion local; verificar deduplicacion por `bootCount:eventId` y UUID de incidente.
 - [ ] Probar persistencia, migraciones, borrado en cascada y reanudacion despues de recrear proceso con Robolectric/Room.
@@ -58,6 +58,7 @@ Este roadmap convierte `docs/` y `specs/features/` en trabajo ejecutable para `A
 
 ## Fase 5 — Alerta y despacho local (ruta P0)
 
+- [x] Crear el componente visual aislado de S-20 a partir del boceto; mostrar solo nombres y precisión de ubicación, con acciones accesibles desacopladas del despacho real.
 - [ ] Implementar `AlertActivity` y notificacion de alta prioridad/full-screen intent, permisos Android 14+, pantalla bloqueada y fallback heads-up.
 - [ ] Implementar cuenta basada en deadline, alarma y vibracion, cancelacion con pulsacion sostenida de 1 s, envio inmediato de ayuda y reanudacion tras muerte del proceso.
 - [ ] Implementar `LocationAcquirer`: iniciar al comenzar cuenta, prioridad GPS del telefono/NEO-6M/ultima ubicacion, frescura y timeouts definidos.

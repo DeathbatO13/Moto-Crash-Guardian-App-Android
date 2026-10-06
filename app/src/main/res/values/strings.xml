@@ -1,3 +1,20 @@
 <resources>
     <string name="app_name">Moto Crash Guardian</string>
+    <string name="alert_simulation">SIMULACRO</string>
+    <string name="alert_status_active">ALERTA ACTIVA</string>
+    <string name="alert_header_emergency">EVENTO DE EMERGENCIA</string>
+    <string name="alert_possible_accident">POSIBLE ACCIDENTE</string>
+    <string name="alert_are_you_ok">¿Estás bien?</string>
+    <string name="alert_seconds_to_cancel">SEGUNDOS PARA CANCELAR</string>
+    <string name="alert_countdown_content_description">Cuenta regresiva: %1$d segundos</string>
+    <string name="alert_emergency_contact_heading">CONTACTO DE EMERGENCIA</string>
+    <string name="alert_emergency_contacts_fallback">tus contactos de emergencia</string>
+    <string name="alert_sos_recipient_message">Se enviará una alerta SOS a %1$s.</string>
+    <string name="alert_hold_to_cancel">MANTÉN PRESIONADO: ESTOY BIEN</string>
+    <string name="alert_hold_helper">Mantén 1 segundo con tu guante para cancelar</string>
+    <string name="alert_cancel_action_description">Cancelar la alerta</string>
+    <string name="alert_send_help_now">ENVIAR AYUDA AHORA</string>
+    <string name="alert_location_available">Ubicación obtenida ±%1$d m</string>
+    <string name="alert_location_unavailable">Ubicación no disponible</string>
+    <string name="alert_dispatch_uses_location">Se intentará enviar la alerta con la ubicación disponible.</string>
 </resources>
