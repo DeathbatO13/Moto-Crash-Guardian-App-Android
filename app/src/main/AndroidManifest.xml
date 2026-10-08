@@ -82,6 +82,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <receiver
+            android:name=".emergency.platform.SmsSentReceiver"
+            android:exported="false" />
     </application>
 
 </manifest>
