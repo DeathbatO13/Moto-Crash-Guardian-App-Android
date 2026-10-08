@@ -65,8 +65,8 @@ La maquina de estados ya está implementada y probada de forma local; falta cone
 - [ ] Implementar `AlertActivity` y notificacion de alta prioridad/full-screen intent, permisos Android 14+, pantalla bloqueada y fallback heads-up.
 - [ ] Implementar cuenta basada en deadline, alarma y vibracion, cancelacion con pulsacion sostenida de 1 s, envio inmediato de ayuda y reanudacion tras muerte del proceso.
 - [ ] Implementar `LocationAcquirer`: iniciar al comenzar cuenta, prioridad GPS del telefono/NEO-6M/ultima ubicacion, frescura y timeouts definidos.
-- [ ] Implementar `PhoneNumberNormalizer` y `GsmMessageBuilder` como logica pura; asegurar GSM-7, normalizacion de tildes y plantillas de simulacro.
-- [ ] Implementar `SmsDispatcher` con multipart, intents internos, resultados y un reintento; despues de SMS (o timeout) llamar al principal con `TelecomManager.placeCall`.
+- [x] Implementar `PhoneNumberNormalizer` y `GsmMessageBuilder` como logica pura; asegurar GSM-7, normalizacion de tildes y plantillas de simulacro.
+- [x] Implementar `SmsDispatcher` con multipart, intents internos, resultados y un reintento; `CallDispatcher` usa `TelecomManager.placeCall` con permiso y simulacro verificables.
 - [ ] Implementar `DispatchOrchestrator`, estados parciales/fallidos y resultado/acciones de recuperacion. No hacer llamadas de red al backend en esta ruta.
 - [ ] Probar manualmente en telefono con SIM: pantalla bloqueada, cancelacion, ubicacion no disponible, sin internet y SMS/llamada reales solo a contactos de prueba.
 
