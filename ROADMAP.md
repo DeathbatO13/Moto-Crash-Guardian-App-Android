@@ -67,7 +67,7 @@ La maquina de estados ya está implementada y probada de forma local; falta cone
 - [ ] Implementar `LocationAcquirer`: iniciar al comenzar cuenta, prioridad GPS del telefono/NEO-6M/ultima ubicacion, frescura y timeouts definidos.
 - [x] Implementar `PhoneNumberNormalizer` y `GsmMessageBuilder` como logica pura; asegurar GSM-7, normalizacion de tildes y plantillas de simulacro.
 - [x] Implementar `SmsDispatcher` con multipart, intents internos, resultados y un reintento; `CallDispatcher` usa `TelecomManager.placeCall` con permiso y simulacro verificables.
-- [ ] Implementar `DispatchOrchestrator`, estados parciales/fallidos y resultado/acciones de recuperacion. No hacer llamadas de red al backend en esta ruta.
+- [x] Implementar `DispatchOrchestrator`, estados parciales/fallidos y resultado/acciones de recuperacion. No hacer llamadas de red al backend en esta ruta. (Falta conectarlo al efecto `DispatchRequested` desde `GuardianService`; las acciones de recuperacion en UI quedan para `AlertActivity`.)
 - [ ] Probar manualmente en telefono con SIM: pantalla bloqueada, cancelacion, ubicacion no disponible, sin internet y SMS/llamada reales solo a contactos de prueba.
 
 **Salida:** evento confirmado -> countdown -> SMS -> llamada opera offline; cumplir FEAT-06/07/08 y NFR-001/002/003.
