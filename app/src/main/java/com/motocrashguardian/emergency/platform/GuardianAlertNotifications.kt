@@ -49,7 +49,11 @@ class GuardianAlertNotifications(context: Context) {
                 alertPendingIntent(REQUEST_ALERT_ACTION)
             )
             .build()
-        NotificationManagerCompat.from(appContext).notify(NOTIFICATION_ID, notification)
+        try {
+            NotificationManagerCompat.from(appContext).notify(NOTIFICATION_ID, notification)
+        } catch (_: SecurityException) {
+            return AlertNotificationVisibility.NOTIFICATIONS_DISABLED
+        }
         return if (fullScreenAllowed) {
             AlertNotificationVisibility.FULL_SCREEN_INTENT
         } else {
