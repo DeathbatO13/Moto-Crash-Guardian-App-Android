@@ -1,5 +1,10 @@
 <resources>
     <string name="app_name">Moto Crash Guardian</string>
+    <string name="alert_notification_title">Posible accidente detectado</string>
+    <string name="alert_notification_countdown">Se enviará una alerta en %1$d s. Toca para cancelar.</string>
+    <string name="alert_notification_open">Abrir alerta</string>
+    <string name="alert_notification_channel_name">Alertas de accidente</string>
+    <string name="alert_notification_channel_description">Cuenta regresiva antes de enviar la alerta de emergencia.</string>
     <string name="alert_simulation">SIMULACRO</string>
     <string name="alert_status_active">ALERTA ACTIVA</string>
     <string name="alert_header_emergency">EVENTO DE EMERGENCIA</string>
