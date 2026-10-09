@@ -1,5 +1,6 @@
 package com.motocrashguardian.emergency
 
+import com.motocrashguardian.core.model.Incident
 import com.motocrashguardian.core.model.IncidentStatus
 import com.motocrashguardian.detection.GuardianEffect
 import com.motocrashguardian.detection.GuardianStateMachine
@@ -25,6 +26,7 @@ class EmergencyFlowController(
     private val alarm: AlarmPlayer,
     private val showCountdown: (remainingSeconds: Int) -> Unit,
     private val cancelCountdownNotification: () -> Unit,
+    private val locationAcquirer: LocationAcquirer,
     private val clock: Clock = Clock.systemUTC()
 ) {
     fun start(scope: CoroutineScope): Job = scope.launch {
@@ -34,16 +36,18 @@ class EmergencyFlowController(
                 is GuardianEffect.CountdownStarted -> {
                     ticker?.cancel()
                     guarded { alarm.start() }
+                    guarded { locationAcquirer.begin() }
                     ticker = launch { tickNotification(effect.deadline) }
                 }
                 is GuardianEffect.CountdownCancelled -> {
                     ticker?.cancel()
+                    guarded { locationAcquirer.cancel() }
                     endAlert()
                 }
                 is GuardianEffect.DispatchRequested -> {
                     ticker?.cancel()
                     endAlert()
-                    dispatch(effect)
+                    dispatch(effect.incident.withFix(acquireLocation()))
                 }
                 is GuardianEffect.DispatchCompleted,
                 is GuardianEffect.IncidentRejected,
@@ -52,9 +56,18 @@ class EmergencyFlowController(
         }
     }
 
-    private suspend fun dispatch(effect: GuardianEffect.DispatchRequested) {
+    private suspend fun acquireLocation(): LocationFix? =
+        try {
+            locationAcquirer.finish()
+        } catch (error: CancellationException) {
+            throw error
+        } catch (_: Exception) {
+            null
+        }
+
+    private suspend fun dispatch(incident: Incident) {
         val status = try {
-            orchestrator.dispatch(effect.incident).status
+            orchestrator.dispatch(incident).status
         } catch (error: CancellationException) {
             throw error
         } catch (_: Exception) {

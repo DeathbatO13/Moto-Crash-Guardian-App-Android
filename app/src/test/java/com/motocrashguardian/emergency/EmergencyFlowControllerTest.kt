@@ -3,6 +3,7 @@ package com.motocrashguardian.emergency
 import com.motocrashguardian.core.model.Incident
 import com.motocrashguardian.core.model.IncidentStatus
 import com.motocrashguardian.core.model.IncidentType
+import com.motocrashguardian.core.model.LocationSource
 import com.motocrashguardian.core.model.TriggerType
 import com.motocrashguardian.detection.GuardianEffect
 import com.motocrashguardian.detection.GuardianStateMachine
@@ -36,6 +37,7 @@ class EmergencyFlowControllerTest {
     private val shown = mutableListOf<Int>()
     private var alarmFails = false
     private var notificationFails = false
+    private var phoneFix: LocationFix? = null
 
     private val incident = Incident(
         type = IncidentType.REAL,
@@ -68,6 +70,13 @@ class EmergencyFlowControllerTest {
             shown += it
         },
         cancelCountdownNotification = { log += "notification:cancel" },
+        locationAcquirer = LocationAcquirer(
+            scope = backgroundScope,
+            phoneSource = PhoneLocationSource { phoneFix },
+            lastKnownSource = LastKnownLocationSource { null },
+            deviceGps = DeviceGpsSource { null },
+            clock = clock()
+        ),
         clock = clock()
     ).also { every { machine.effects } returns effects.receiveAsFlow() }
 
@@ -124,6 +133,49 @@ class EmergencyFlowControllerTest {
         assertTrue(log.indexOf("alarm:stop") > log.indexOf("alarm:start"))
         coVerify(exactly = 1) { orchestrator.dispatch(incident) }
         coVerify(exactly = 1) { machine.onDispatchCompleted(IncidentStatus.DISPATCH_PARTIAL) }
+    }
+
+    @Test
+    fun `el despacho recibe el incidente con la ubicacion obtenida durante la cuenta`() = runTest {
+        phoneFix = LocationFix(
+            latitude = 4.7109,
+            longitude = -74.0721,
+            accuracyMeters = 9f,
+            source = LocationSource.PHONE_GPS,
+            fixAt = start
+        )
+        coEvery { orchestrator.dispatch(any()) } returns DispatchOutcome(
+            incident, IncidentStatus.DISPATCHED, emptyList()
+        )
+        controller().start(backgroundScope)
+
+        effects.send(GuardianEffect.CountdownStarted(incident, start.plusSeconds(10)))
+        runCurrent()
+        effects.send(GuardianEffect.DispatchRequested(incident))
+        runCurrent()
+
+        coVerify(exactly = 1) {
+            orchestrator.dispatch(
+                match {
+                    it.latitude == 4.7109 && it.longitude == -74.0721 &&
+                        it.locationSource == LocationSource.PHONE_GPS
+                }
+            )
+        }
+    }
+
+    @Test
+    fun `sin ubicacion el despacho sale igual con el incidente original`() = runTest {
+        coEvery { orchestrator.dispatch(any()) } returns DispatchOutcome(
+            incident, IncidentStatus.DISPATCHED, emptyList()
+        )
+        controller().start(backgroundScope)
+
+        effects.send(GuardianEffect.CountdownStarted(incident, start.plusSeconds(10)))
+        effects.send(GuardianEffect.DispatchRequested(incident))
+        runCurrent()
+
+        coVerify(exactly = 1) { orchestrator.dispatch(incident) }
     }
 
     @Test
