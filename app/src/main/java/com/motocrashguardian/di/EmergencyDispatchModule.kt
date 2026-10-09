@@ -1,8 +1,12 @@
 package com.motocrashguardian.di
 
 import android.content.Context
+import com.motocrashguardian.data.incidents.IncidentRepository
+import com.motocrashguardian.data.settings.SettingsRepository
 import com.motocrashguardian.emergency.CallDispatcher
 import com.motocrashguardian.emergency.CallTransport
+import com.motocrashguardian.emergency.DispatchOrchestrator
+import com.motocrashguardian.emergency.GsmMessageBuilder
 import com.motocrashguardian.emergency.SmsDispatcher
 import com.motocrashguardian.emergency.SmsTransport
 import com.motocrashguardian.emergency.platform.AndroidCallPermission
@@ -14,6 +18,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.flow.first
 import javax.inject.Singleton
 
 @Module
@@ -35,6 +40,20 @@ object EmergencyDispatchModule {
     ): SmsDispatcher = SmsDispatcher(
         transport = transport,
         hasSendPermission = AndroidSmsPermission(context)::invoke
+    )
+
+    @Provides
+    fun provideDispatchOrchestrator(
+        smsDispatcher: SmsDispatcher,
+        callDispatcher: CallDispatcher,
+        settingsRepository: SettingsRepository,
+        incidentRepository: IncidentRepository
+    ): DispatchOrchestrator = DispatchOrchestrator(
+        smsDispatcher = smsDispatcher,
+        callDispatcher = callDispatcher,
+        messageBuilder = GsmMessageBuilder(),
+        loadSettings = { settingsRepository.settings.first() },
+        saveIncident = incidentRepository::updateIncident
     )
 
     @Provides

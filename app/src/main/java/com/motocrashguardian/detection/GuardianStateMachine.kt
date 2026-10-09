@@ -425,7 +425,9 @@ class GuardianStateMachine(
             "Dispatch result must be DISPATCHED, DISPATCH_PARTIAL, or DISPATCH_FAILED."
         }
         val dispatching = mutableState.value as? GuardianState.Dispatching ?: return
-        val completed = dispatching.incident.copy(status = status, resolvedAt = clock.instant())
+        // El despacho persiste estados de SMS/llamada; partir de la copia guardada evita pisarlos.
+        val base = incidentRepository.getIncident(dispatching.incident.id) ?: dispatching.incident
+        val completed = base.copy(status = status, resolvedAt = clock.instant())
         persistUpdate(completed)
         mutableState.value = GuardianState.Dispatched(completed)
         effectChannel.send(GuardianEffect.DispatchCompleted(completed))

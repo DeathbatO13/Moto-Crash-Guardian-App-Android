@@ -2,6 +2,8 @@ package com.motocrashguardian.detection
 
 import androidx.room.Room
 import com.motocrashguardian.core.model.AppSettings
+import com.motocrashguardian.core.model.CallStatus
+import com.motocrashguardian.core.model.SmsStatus
 import com.motocrashguardian.core.model.DeviceEvent
 import com.motocrashguardian.core.model.DeviceEventType
 import com.motocrashguardian.core.model.DeviceState
@@ -126,6 +128,32 @@ class GuardianStateMachineTest {
         assertEquals(IncidentStatus.DISPATCHED, repository.getIncident(incident.id)?.status)
         testMachine.dismissResult()
         assertEquals(GuardianState.Monitoring, testMachine.state.value)
+    }
+
+    @Test
+    fun `finalizar el despacho conserva los estados de SMS y llamada ya persistidos`() = runTest {
+        val repository = newIncidentRepository()
+        val testMachine = newMachine(newSettingsRepository(), repository)
+        testMachine.startTrip()
+        testMachine.onCandidate(event(DeviceEventType.TEST))
+        val incident = (testMachine.state.value as GuardianState.Countdown).incident
+        testMachine.sendHelpNow()
+        repository.updateIncident(
+            incident.copy(
+                primarySmsStatus = SmsStatus.SENT,
+                secondarySmsStatus = SmsStatus.FAILED,
+                callStatus = CallStatus.PLACED
+            )
+        )
+
+        testMachine.onDispatchCompleted(IncidentStatus.DISPATCH_PARTIAL)
+
+        val stored = repository.getIncident(incident.id)!!
+        assertEquals(IncidentStatus.DISPATCH_PARTIAL, stored.status)
+        assertEquals(SmsStatus.SENT, stored.primarySmsStatus)
+        assertEquals(SmsStatus.FAILED, stored.secondarySmsStatus)
+        assertEquals(CallStatus.PLACED, stored.callStatus)
+        assertEquals(stored, (testMachine.state.value as GuardianState.Dispatched).incident)
     }
 
     @Test
