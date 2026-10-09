@@ -6,32 +6,51 @@ import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.motocrashguardian.ui.theme.MotoCrashGuardianTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
  * Destino de la notificacion de cuenta regresiva (full-screen intent).
  *
- * Por ahora muestra [CountdownScreen] con valores fijos; el estado real de
- * `GuardianStateMachine` se conectara cuando exista `GuardianService`.
+ * Refleja el estado de `GuardianStateMachine`; se cierra sola cuando ya no hay una alerta
+ * (cancelada o resultado descartado).
  */
 @AndroidEntryPoint
 class AlertActivity : ComponentActivity() {
+    private val viewModel: AlertViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         showOverLockScreen()
         enableEdgeToEdge()
         setContent {
             MotoCrashGuardianTheme {
-                CountdownScreen(
-                    remainingSeconds = DefaultCountdownSeconds,
-                    totalSeconds = DefaultCountdownSeconds,
-                    emergencyContactNames = emptyList(),
-                    locationAccuracyMeters = null,
-                    isSimulation = false,
-                    onCancelConfirmed = ::finish,
-                    onSendHelpNow = {}
-                )
+                val state by viewModel.uiState.collectAsStateWithLifecycle()
+                LaunchedEffect(state) {
+                    if (state is AlertUiState.Hidden) finish()
+                }
+                when (val current = state) {
+                    is AlertUiState.Countdown -> CountdownScreen(
+                        remainingSeconds = current.remainingSeconds,
+                        totalSeconds = current.totalSeconds,
+                        emergencyContactNames = current.contactNames,
+                        locationAccuracyMeters = current.locationAccuracyMeters,
+                        isSimulation = current.isSimulation,
+                        onCancelConfirmed = viewModel::cancelCountdown,
+                        onSendHelpNow = viewModel::sendHelpNow
+                    )
+                    AlertUiState.Dispatching -> DispatchingScreen()
+                    is AlertUiState.Result -> ResultScreen(
+                        status = current.status,
+                        isSimulation = current.isSimulation,
+                        onClose = viewModel::dismissResult
+                    )
+                    AlertUiState.Hidden -> Unit
+                }
             }
         }
     }
@@ -47,9 +66,5 @@ class AlertActivity : ComponentActivity() {
                     WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
             )
         }
-    }
-
-    private companion object {
-        const val DefaultCountdownSeconds = 20
     }
 }

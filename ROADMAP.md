@@ -62,8 +62,8 @@ La maquina de estados ya está implementada y probada de forma local; falta cone
 ## Fase 5 — Alerta y despacho local (ruta P0)
 
 - [x] Crear el componente visual aislado de S-20 a partir del boceto; mostrar solo nombres y precisión de ubicación, con acciones accesibles desacopladas del despacho real.
-- [ ] Implementar `AlertActivity` y notificacion de alta prioridad/full-screen intent, permisos Android 14+, pantalla bloqueada y fallback heads-up.
-- [ ] Implementar cuenta basada en deadline, alarma y vibracion, cancelacion con pulsacion sostenida de 1 s, envio inmediato de ayuda y reanudacion tras muerte del proceso.
+- [x] Implementar `AlertActivity` y notificacion de alta prioridad/full-screen intent, permisos Android 14+, pantalla bloqueada y fallback heads-up. (Codigo y pruebas listos; falta la solicitud de permisos en Fase 4 y la verificacion manual en telefono.)
+- [x] Implementar cuenta basada en deadline, alarma y vibracion, cancelacion con pulsacion sostenida de 1 s, envio inmediato de ayuda y reanudacion tras muerte del proceso. (`EmergencyFlowController` + `GuardianApp.restore()`; se movera a `GuardianService` en T-1.05.)
 - [ ] Implementar `LocationAcquirer`: iniciar al comenzar cuenta, prioridad GPS del telefono/NEO-6M/ultima ubicacion, frescura y timeouts definidos.
 - [x] Implementar `PhoneNumberNormalizer` y `GsmMessageBuilder` como logica pura; asegurar GSM-7, normalizacion de tildes y plantillas de simulacro.
 - [x] Implementar `SmsDispatcher` con multipart, intents internos, resultados y un reintento; `CallDispatcher` usa `TelecomManager.placeCall` con permiso y simulacro verificables.

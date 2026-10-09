@@ -3,10 +3,15 @@ package com.motocrashguardian.di
 import android.content.Context
 import com.motocrashguardian.data.incidents.IncidentRepository
 import com.motocrashguardian.data.settings.SettingsRepository
+import com.motocrashguardian.detection.GuardianStateMachine
+import com.motocrashguardian.emergency.AlarmPlayer
 import com.motocrashguardian.emergency.CallDispatcher
 import com.motocrashguardian.emergency.CallTransport
 import com.motocrashguardian.emergency.DispatchOrchestrator
+import com.motocrashguardian.emergency.EmergencyFlowController
 import com.motocrashguardian.emergency.GsmMessageBuilder
+import com.motocrashguardian.emergency.platform.AndroidAlarmOutput
+import com.motocrashguardian.emergency.platform.GuardianAlertNotifications
 import com.motocrashguardian.emergency.SmsDispatcher
 import com.motocrashguardian.emergency.SmsTransport
 import com.motocrashguardian.emergency.platform.AndroidCallPermission
@@ -55,6 +60,29 @@ object EmergencyDispatchModule {
         loadSettings = { settingsRepository.settings.first() },
         saveIncident = incidentRepository::updateIncident
     )
+
+    @Provides
+    @Singleton
+    fun provideAlarmPlayer(@ApplicationContext context: Context): AlarmPlayer =
+        AlarmPlayer(AndroidAlarmOutput(context))
+
+    @Provides
+    @Singleton
+    fun provideEmergencyFlowController(
+        @ApplicationContext context: Context,
+        machine: GuardianStateMachine,
+        orchestrator: DispatchOrchestrator,
+        alarm: AlarmPlayer
+    ): EmergencyFlowController {
+        val notifications by lazy { GuardianAlertNotifications(context) }
+        return EmergencyFlowController(
+            machine = machine,
+            orchestrator = orchestrator,
+            alarm = alarm,
+            showCountdown = { notifications.showCountdown(it) },
+            cancelCountdownNotification = { notifications.cancelCountdown() }
+        )
+    }
 
     @Provides
     @Singleton
