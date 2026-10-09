@@ -5,6 +5,14 @@
     <string name="alert_notification_open">Abrir alerta</string>
     <string name="alert_notification_channel_name">Alertas de accidente</string>
     <string name="alert_notification_channel_description">Cuenta regresiva antes de enviar la alerta de emergencia.</string>
+    <string name="alert_dispatching">Enviando alerta…</string>
+    <string name="alert_result_dispatched_title">Alerta enviada</string>
+    <string name="alert_result_dispatched_detail">Se avisó a tus contactos de emergencia.</string>
+    <string name="alert_result_partial_title">Alerta enviada parcialmente</string>
+    <string name="alert_result_partial_detail">Algunos avisos no pudieron enviarse. Si necesitas ayuda, llama al 123.</string>
+    <string name="alert_result_failed_title">No se pudo enviar la alerta</string>
+    <string name="alert_result_failed_detail">Ningún aviso salió. Si necesitas ayuda, llama al 123.</string>
+    <string name="alert_result_close">Cerrar</string>
     <string name="alert_simulation">SIMULACRO</string>
     <string name="alert_status_active">ALERTA ACTIVA</string>
     <string name="alert_header_emergency">EVENTO DE EMERGENCIA</string>

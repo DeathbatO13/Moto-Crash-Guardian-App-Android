@@ -62,9 +62,9 @@ La maquina de estados ya está implementada y probada de forma local; falta cone
 ## Fase 5 — Alerta y despacho local (ruta P0)
 
 - [x] Crear el componente visual aislado de S-20 a partir del boceto; mostrar solo nombres y precisión de ubicación, con acciones accesibles desacopladas del despacho real.
-- [ ] Implementar `AlertActivity` y notificacion de alta prioridad/full-screen intent, permisos Android 14+, pantalla bloqueada y fallback heads-up.
-- [ ] Implementar cuenta basada en deadline, alarma y vibracion, cancelacion con pulsacion sostenida de 1 s, envio inmediato de ayuda y reanudacion tras muerte del proceso.
-- [ ] Implementar `LocationAcquirer`: iniciar al comenzar cuenta, prioridad GPS del telefono/NEO-6M/ultima ubicacion, frescura y timeouts definidos.
+- [x] Implementar `AlertActivity` y notificacion de alta prioridad/full-screen intent, permisos Android 14+, pantalla bloqueada y fallback heads-up. (Codigo y pruebas listos; falta la solicitud de permisos en Fase 4 y la verificacion manual en telefono.)
+- [x] Implementar cuenta basada en deadline, alarma y vibracion, cancelacion con pulsacion sostenida de 1 s, envio inmediato de ayuda y reanudacion tras muerte del proceso. (`EmergencyFlowController` + `GuardianApp.restore()`; se movera a `GuardianService` en T-1.05.)
+- [x] Implementar `LocationAcquirer`: iniciar al comenzar cuenta, prioridad GPS del telefono/NEO-6M/ultima ubicacion, frescura y timeouts definidos. (Umbrales por defecto supuestos: GPS telefono 10 s, margen al despachar 2 s, GPS moto <= 30 s, ultima conocida <= 24 h; confirmar contra `docs/`. El GPS NEO-6M queda como `NoDeviceGpsSource` hasta tener la caracteristica BLE `GPS`.)
 - [x] Implementar `PhoneNumberNormalizer` y `GsmMessageBuilder` como logica pura; asegurar GSM-7, normalizacion de tildes y plantillas de simulacro.
 - [x] Implementar `SmsDispatcher` con multipart, intents internos, resultados y un reintento; `CallDispatcher` usa `TelecomManager.placeCall` con permiso y simulacro verificables.
 - [x] Implementar `DispatchOrchestrator`, estados parciales/fallidos y resultado/acciones de recuperacion. No hacer llamadas de red al backend en esta ruta. (Falta conectarlo al efecto `DispatchRequested` desde `GuardianService`; las acciones de recuperacion en UI quedan para `AlertActivity`.)
