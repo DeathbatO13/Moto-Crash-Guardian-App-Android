@@ -2,7 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Bluetooth BLE -->
+    <!-- Bluetooth BLE (Solo para comunicación con el dispositivo Moto Crash Guardian) -->
+    <!-- Se usa neverForLocation para evitar pedir permiso de ubicación en Android 12+ -->
     <uses-permission
         android:name="android.permission.BLUETOOTH_SCAN"
         android:usesPermissionFlags="neverForLocation"
@@ -17,10 +18,6 @@
         android:name="android.permission.BLUETOOTH_ADMIN"
         android:maxSdkVersion="30" />
 
-    <!-- Ubicación -->
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-
     <!-- Emergencia (Despacho SMS y Llamada) -->
     <uses-permission android:name="android.permission.SEND_SMS" />
     <uses-permission android:name="android.permission.CALL_PHONE" />
@@ -33,9 +30,6 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission
         android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE"
-        tools:targetApi="upside_down_cake" />
-    <uses-permission
-        android:name="android.permission.FOREGROUND_SERVICE_LOCATION"
         tools:targetApi="upside_down_cake" />
 
     <!-- Companion Device Manager -->
@@ -91,6 +85,10 @@
         <receiver
             android:name=".emergency.platform.SmsSentReceiver"
             android:exported="false" />
+        <service
+            android:name=".service.GuardianService"
+            android:exported="false"
+            android:foregroundServiceType="connectedDevice" />
     </application>
 
 </manifest>

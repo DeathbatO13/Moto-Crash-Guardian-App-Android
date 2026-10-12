@@ -1,18 +1,32 @@
 package com.motocrashguardian.ui.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+
+private val DarkColorScheme = darkColorScheme(
+    primary = PrimaryBlue,
+    secondary = SecondaryBlue,
+    tertiary = SuccessGreen,
+    background = DarkBackground,
+    surface = DarkSurface,
+    surfaceVariant = DarkSurfaceVariant,
+    onPrimary = DarkBackground,
+    onSecondary = TextPrimary,
+    onTertiary = TextPrimary,
+    onBackground = TextPrimary,
+    onSurface = TextPrimary,
+    onSurfaceVariant = TextSecondary,
+    error = ErrorRed,
+    outline = DividerColor
+)
 
 @Composable
 fun MotoCrashGuardianTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit,
 ) {
     MaterialTheme(
-        colorScheme = if (darkTheme) darkColorScheme() else lightColorScheme(),
+        colorScheme = DarkColorScheme,
         content = content,
     )
 }

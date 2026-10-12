@@ -30,4 +30,28 @@
     <string name="alert_location_available">Ubicación obtenida ±%1$d m</string>
     <string name="alert_location_unavailable">Ubicación no disponible</string>
     <string name="alert_dispatch_uses_location">Se intentará enviar la alerta con la ubicación disponible.</string>
+
+    <!-- Servicio de conexión BLE -->
+    <string name="service_notification_title">Moto Crash Guardian</string>
+    <string name="service_channel_name">Conexión del dispositivo</string>
+    <string name="service_channel_description">Mantiene la conexión BLE con el módulo de la moto.</string>
+    <string name="service_state_disconnected">Esperando dispositivo</string>
+    <string name="service_state_connecting">Conectando…</string>
+    <string name="service_state_disconnecting">Desconectando…</string>
+    <string name="service_state_ready">Dispositivo conectado</string>
+    <string name="service_state_incompatible">Firmware incompatible</string>
+
+    <!-- Onboarding / Emparejamiento (S-04) -->
+    <string name="pairing_title">Emparejar dispositivo</string>
+    <string name="pairing_description">Busca el módulo instalado en tu moto. Asegúrate de que el interruptor esté encendido.</string>
+    <string name="pairing_button_start">BUSCAR DISPOSITIVO</string>
+    <string name="pairing_searching">Buscando módulo Moto Crash Guardian…</string>
+    <string name="pairing_step">PASO 4 DE 4 · CONEXIÓN</string>
+    <string name="pairing_success_title">¡Vinculado correctamente!</string>
+    <string name="pairing_success_description">El dispositivo ya está enlazado. Todo listo para tu primer viaje.</string>
+    <string name="pairing_button_finish">TERMINAR CONFIGURACIÓN</string>
+    <string name="pairing_error_title">No se encontró el dispositivo</string>
+    <string name="pairing_error_retry">REINTENTAR BÚSQUEDA</string>
+    <string name="pairing_info_title">¿Por qué vincular?</string>
+    <string name="pairing_info_body">Vincular el dispositivo permite que la app se conecte automáticamente al encender la moto, sin necesidad de abrir la app manualmente cada vez.</string>
 </resources>
