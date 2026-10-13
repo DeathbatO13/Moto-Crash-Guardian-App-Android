@@ -2,9 +2,7 @@ package com.motocrashguardian.ui.onboarding
 
 import com.motocrashguardian.core.model.AppSettings
 import com.motocrashguardian.data.settings.SettingsRepository
-import io.mockk.any
 import io.mockk.coEvery
-import io.mockk.firstArg
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi

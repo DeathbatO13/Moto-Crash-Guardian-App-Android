@@ -14,7 +14,6 @@ import com.motocrashguardian.core.model.TriggerType
 import com.motocrashguardian.data.incidents.GuardianDatabase
 import com.motocrashguardian.data.incidents.IncidentRepository
 import com.motocrashguardian.data.settings.SettingsRepository
-import io.mockk.any
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
