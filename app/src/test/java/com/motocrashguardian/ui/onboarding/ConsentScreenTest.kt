@@ -3,9 +3,8 @@ package com.motocrashguardian.ui.onboarding
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
-import androidx.compose.ui.test.hasToggleableAction
+import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onNode
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.motocrashguardian.ui.theme.MotoCrashGuardianTheme
@@ -13,9 +12,12 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 /** S-02 Consentimiento de datos (docs/06 §4). */
 @RunWith(RobolectricTestRunner::class)
+// Pantalla alta: assertIsDisplayed exige que el nodo este dentro del viewport (por defecto 320x470 dp).
+@Config(qualifiers = "w411dp-h2000dp-xxhdpi")
 class ConsentScreenTest {
 
     @get:Rule
@@ -40,7 +42,7 @@ class ConsentScreenTest {
         composeRule.onNodeWithText(buttonText).assertIsDisplayed()
         composeRule.onNodeWithText(buttonText).assertIsNotEnabled()
 
-        composeRule.onNode(hasToggleableAction()).performClick()
+        composeRule.onNode(isToggleable()).performClick()
 
         composeRule.onNodeWithText(buttonText).assertIsEnabled()
     }

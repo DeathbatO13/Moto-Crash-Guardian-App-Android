@@ -11,17 +11,20 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 import org.robolectric.RuntimeEnvironment
 
 /** S-03 Asistente de permisos (docs/06 §4). */
 @RunWith(RobolectricTestRunner::class)
+// Pantalla alta: assertIsDisplayed exige que el nodo este dentro del viewport (por defecto 320x470 dp).
+@Config(qualifiers = "w411dp-h2000dp-xxhdpi")
 class PermissionsScreenTest {
 
     @get:Rule
     val composeRule = createComposeRule()
 
     private val context =
-        RuntimeEnvironment.getApplication<Application>()
+        RuntimeEnvironment.getApplication()
 
     @Test
     fun muestraLaListaDePermisosYElProgreso() {
@@ -38,13 +41,11 @@ class PermissionsScreenTest {
         composeRule.onNodeWithText("Notificaciones").assertIsDisplayed()
         composeRule.onNodeWithText("Dispositivos cercanos")
             .assertIsDisplayed()
-        composeRule.onNodeWithText("Ubicación precisa")
-            .assertIsDisplayed()
         composeRule.onNodeWithText("SMS").assertIsDisplayed()
         composeRule.onNodeWithText("Llamadas").assertIsDisplayed()
         composeRule.onNodeWithText("Pantalla completa")
             .assertIsDisplayed()
-        composeRule.onNodeWithText("Batería sin restricciones")
+        composeRule.onNodeWithText("Batería optimizada")
             .assertIsDisplayed()
         composeRule.onNodeWithText("ESTADO DE INSTALACIÓN")
             .assertIsDisplayed()

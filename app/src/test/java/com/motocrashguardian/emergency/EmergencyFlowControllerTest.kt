@@ -7,11 +7,9 @@ import com.motocrashguardian.core.model.LocationSource
 import com.motocrashguardian.core.model.TriggerType
 import com.motocrashguardian.detection.GuardianEffect
 import com.motocrashguardian.detection.GuardianStateMachine
-import io.mockk.any
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
-import io.mockk.match
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel

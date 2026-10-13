@@ -1,5 +1,6 @@
 package com.motocrashguardian.ble.protocol
 
+import com.motocrashguardian.bytesOf
 import com.motocrashguardian.core.model.DeviceEventType
 import com.motocrashguardian.core.model.DeviceState
 import org.junit.jupiter.api.Assertions.assertArrayEquals
@@ -20,33 +21,33 @@ class BleProtocolTest {
     private val receivedAt = Instant.parse("2026-01-01T00:00:00Z")
 
     // TELEMETRY #1: reposo
-    private val telemetryRest = byteArrayOf(
+    private val telemetryRest = bytesOf(
         0x01, 0x2A, 0x02, 0x07, 0xD7.toByte(), 0xFF.toByte(), 0x78, 0x00,
         0xF2, 0x03, 0x46, 0x05, 0x0C, 0x00, 0x52, 0x00
     )
 
     // TELEMETRY #2: moto caída y saturación
-    private val telemetryCrash = byteArrayOf(
+    private val telemetryCrash = bytesOf(
         0x01, 0xFF.toByte(), 0x03, 0x21, 0x82, 0x05, 0x1C.toByte(), 0xDF.toByte(),
         0x80.toByte(), 0x3E.toByte(), 0x80.toByte(), 0x3E.toByte(), 0xE2, 0x04,
         0xFF.toByte(), 0x00
     )
 
     // EVENT #1: impacto
-    private val eventImpact = byteArrayOf(
+    private val eventImpact = bytesOf(
         0x01, 0x01, 0x03, 0x00, 0x39, 0x00, 0x40, 0xE2,
         0x01, 0x00, 0x6E, 0x14, 0x9C, 0x01, 0xA2.toByte(), 0xFE.toByte(),
         0xE4, 0x20, 0x00, 0x00
     )
 
     // CONFIG: valores por defecto
-    private val configDefault = byteArrayOf(
+    private val configDefault = bytesOf(
         0x01, 0x01, 0xAC.toByte(), 0x0D, 0x2C, 0x01, 0x41, 0x14,
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
     )
 
     // CONTROL_POINT: respuesta a TARE (pitch −14.10°, roll −7.30°)
-    private val tareResponse = byteArrayOf(
+    private val tareResponse = bytesOf(
         0x01, 0x07, 0x00, 0x7E, 0xFA.toByte(), 0x26, 0xFD.toByte()
     )
 
@@ -137,7 +138,7 @@ class BleProtocolTest {
         assertEquals(BleProtocol.RESULT_OK, resp.result)
         // pitchOffset −1410 cdec = 0xFA7E · rollOffset −730 cdec = 0xFD26
         assertArrayEquals(
-            byteArrayOf(0x7E, 0xFA.toByte(), 0x26, 0xFD.toByte()),
+            bytesOf(0x7E, 0xFA.toByte(), 0x26, 0xFD.toByte()),
             resp.payload
         )
     }
@@ -146,10 +147,10 @@ class BleProtocolTest {
     fun `decodifica gps`() {
         // fix 3D · 12 satélites · HDOP 1.5 · 40.4000000, −37.0000000 ·
         // 55.30 km/h · fix de hace 2 s
-        val bytes = byteArrayOf(
+        val bytes = bytesOf(
             0x01, 0x03, 0x0C, 0x0F,
             0x00, 0x8D, 0x14, 0x18,             // latE7 = 404000000
-            0xC0.toByte(), 0x6C, 0xDB.toByte(), 0xFD.toByte(),  // lonE7 = −37000000
+            0xC0.toByte(), 0x6C, 0xCB.toByte(), 0xFD.toByte(),  // lonE7 = −37000000
             0x9A, 0x15,                          // speedKmhX100 = 5530
             0x02, 0x00                           // fixAgeS = 2
         )
@@ -165,7 +166,7 @@ class BleProtocolTest {
 
     @Test
     fun `decodifica metadatos de traza`() {
-        val bytes = byteArrayOf(
+        val bytes = bytesOf(
             0xC8.toByte(), 0x00,                 // 200 Hz
             0x58, 0x02,                          // 600 pre-trigger
             0xB0.toByte(), 0x04,                 // 1200 total
@@ -186,15 +187,15 @@ class BleProtocolTest {
 
     @Test
     fun `decodifica chunk de traza`() {
-        val sample1 = byteArrayOf(
+        val sample1 = bytesOf(
             0x01, 0x00, 0x02, 0x00, 0x00, 0x08,
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00
         )
-        val sample2 = byteArrayOf(
+        val sample2 = bytesOf(
             0xFF.toByte(), 0xFF, 0x00, 0x00, 0x00, 0x08,
             0x10, 0x00, 0x20, 0x00, 0x30, 0x00
         )
-        val bytes = byteArrayOf(
+        val bytes = bytesOf(
             0x03, 0x00,                          // eventId 3
             0x00, 0x00,                          // chunkIndex 0
             0x40.toByte(), 0x00                  // chunkCount 64
@@ -219,26 +220,26 @@ class BleProtocolTest {
     fun `codifica solicitudes de control point`() {
         // ACK_EVENT 57:3 con requestId 9
         assertArrayEquals(
-            byteArrayOf(0x06, 0x09, 0x39, 0x00, 0x03, 0x00),
+            bytesOf(0x06, 0x09, 0x39, 0x00, 0x03, 0x00),
             controlPointRequest(
                 BleProtocol.OP_ACK_EVENT, 9, ackEventParam(57, 3)
             )
         )
         // REQUEST_TRACE del evento 3
         assertArrayEquals(
-            byteArrayOf(0x05, 0x01, 0x03, 0x00),
+            bytesOf(0x05, 0x01, 0x03, 0x00),
             controlPointRequest(
                 BleProtocol.OP_REQUEST_TRACE, 1, requestTraceParam(3)
             )
         )
         // ARM sin parámetro
         assertArrayEquals(
-            byteArrayOf(0x02, 0x00),
+            bytesOf(0x02, 0x00),
             controlPointRequest(BleProtocol.OP_ARM, 0)
         )
         // FACTORY_RESET con 0xDEAD
         assertArrayEquals(
-            byteArrayOf(0x08, 0x00, 0xDE.toByte(), 0xAD.toByte()),
+            bytesOf(0x08, 0x00, 0xDE.toByte(), 0xAD.toByte()),
             controlPointRequest(
                 BleProtocol.OP_FACTORY_RESET, 0, factoryResetParam()
             )
@@ -248,17 +249,17 @@ class BleProtocolTest {
     @Test
     fun `rechaza tramas truncadas`() {
         assertThrows(IllegalArgumentException::class.java) {
-            decodeTelemetry(byteArrayOf(0x01, 0x02), receivedAt)
+            decodeTelemetry(bytesOf(0x01, 0x02), receivedAt)
         }
         assertThrows(IllegalArgumentException::class.java) {
-            decodeEvent(byteArrayOf(0x01, 0x01, 0x03, 0x00), receivedAt)
+            decodeEvent(bytesOf(0x01, 0x01, 0x03, 0x00), receivedAt)
         }
         assertThrows(IllegalArgumentException::class.java) {
-            decodeTraceChunk(byteArrayOf(0x01, 0x00, 0x00))
+            decodeTraceChunk(bytesOf(0x01, 0x00, 0x00))
         }
         assertThrows(IllegalArgumentException::class.java) {
             decodeTraceChunk(
-                byteArrayOf(0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00)
+                bytesOf(0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00)
             )   // header + 1 B: muestra incompleta
         }
     }

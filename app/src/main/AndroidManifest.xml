@@ -18,6 +18,11 @@
         android:name="android.permission.BLUETOOTH_ADMIN"
         android:maxSdkVersion="30" />
 
+    <!-- Ubicación: la ubicación del SMS de emergencia (LocationAcquirer) y, en Android 11 o
+         menos, el escaneo BLE (neverForLocation solo aplica desde Android 12). -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
     <!-- Emergencia (Despacho SMS y Llamada) -->
     <uses-permission android:name="android.permission.SEND_SMS" />
     <uses-permission android:name="android.permission.CALL_PHONE" />
