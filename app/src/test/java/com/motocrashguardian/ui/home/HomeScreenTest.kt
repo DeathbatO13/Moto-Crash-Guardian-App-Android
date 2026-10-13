@@ -47,7 +47,8 @@ class HomeScreenTest {
             context = RuntimeEnvironment.getApplication(),
             deviceRepository = deviceRepository,
             settingsRepository = settingsRepository,
-            stateMachine = stateMachine
+            stateMachine = stateMachine,
+            drillStarter = mockk(relaxed = true)
         )
     }
 

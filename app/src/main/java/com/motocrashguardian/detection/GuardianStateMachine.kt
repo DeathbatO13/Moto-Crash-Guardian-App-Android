@@ -87,6 +87,12 @@ class GuardianStateMachine(
 
     suspend fun requestHelp() = send(Command.RequestHelp())
 
+    /**
+     * Simulacro local: arranca una cuenta regresiva de tipo DRILL sin depender del modulo BLE.
+     * Solo desde Monitoring o ConnectionLost (el candidato BLE tampoco se acepta fuera de ahi).
+     */
+    suspend fun startDrill() = send(Command.StartDrill())
+
     suspend fun onDispatchCompleted(status: IncidentStatus) =
         send(Command.DispatchCompleted(status))
 
@@ -123,6 +129,7 @@ class GuardianStateMachine(
             is Command.CancelCountdown -> cancelCountdownInternal()
             is Command.SendHelpNow -> dispatchNow()
             is Command.RequestHelp -> requestHelpInternal()
+            is Command.StartDrill -> startDrillInternal()
             is Command.DispatchCompleted -> completeDispatch(command.status)
             is Command.DismissResult -> dismissResultInternal()
             is Command.ConnectionLost -> loseConnection()
@@ -412,6 +419,25 @@ class GuardianStateMachine(
         beginCountdown(incident, deadline)
     }
 
+    private suspend fun startDrillInternal() {
+        val current = mutableState.value
+        if (current != GuardianState.Monitoring && current != GuardianState.ConnectionLost) return
+        val settings = settingsRepository.settings.first()
+        val detectedAt = clock.instant()
+        val deadline = detectedAt.plusSeconds(settings.countdownSeconds.toLong())
+        val incident = Incident(
+            type = IncidentType.DRILL,
+            triggerType = TriggerType.TEST,
+            status = IncidentStatus.ACTIVE,
+            detectedAt = detectedAt,
+            countdownDeadline = deadline
+        )
+        check(incidentRepository.recordIncident(incident)) {
+            "Could not persist the drill incident."
+        }
+        beginCountdown(incident, deadline)
+    }
+
     private suspend fun finishCountdown(deadline: Instant) {
         countdownJob = null
         val countdown = mutableState.value as? GuardianState.Countdown ?: return
@@ -524,6 +550,7 @@ class GuardianStateMachine(
         class CancelCountdown : Command()
         class SendHelpNow : Command()
         class RequestHelp : Command()
+        class StartDrill : Command()
         class DispatchCompleted(val status: IncidentStatus) : Command()
         class DismissResult : Command()
         class ConnectionLost : Command()

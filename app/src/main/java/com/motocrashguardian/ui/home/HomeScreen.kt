@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.motocrashguardian.ble.DeviceConnectionState
+import com.motocrashguardian.core.model.AppSettings
 import com.motocrashguardian.core.model.Telemetry
 import com.motocrashguardian.ui.theme.AlertRed
 import com.motocrashguardian.ui.theme.DarkSurface
@@ -38,6 +39,7 @@ fun HomeScreen(
     val connectionState by viewModel.connectionState.collectAsState()
     val telemetry by viewModel.telemetry.collectAsState()
     val settings by viewModel.settings.collectAsState()
+    val drill by viewModel.drill.collectAsState()
 
     var selectedTab by remember { mutableIntStateOf(1) }
 
@@ -195,7 +197,14 @@ fun HomeScreen(
                         }
                     )
                     
-                    LinkVerificationSection(onSendTestSms = { viewModel.triggerTest() })
+                    DrillSection(
+                        drill = drill,
+                        settings = settings,
+                        onDrillPlaceCallChange = viewModel::setDrillPlaceCall,
+                        onStartDrill = viewModel::requestDrill,
+                        onConfirmDrill = viewModel::confirmDrill,
+                        onDismissDrill = viewModel::dismissDrill
+                    )
                 }
                 0 -> {
                     // Pestaña Inicio
@@ -394,29 +403,51 @@ private fun EditField(label: String, value: String, onValueChange: (String) -> U
 }
 
 @Composable
-private fun LinkVerificationSection(onSendTestSms: () -> Unit) {
+fun DrillSection(
+    drill: DrillUiState,
+    settings: AppSettings,
+    onDrillPlaceCallChange: (Boolean) -> Unit,
+    onStartDrill: () -> Unit,
+    onConfirmDrill: () -> Unit,
+    onDismissDrill: () -> Unit
+) {
+    val contacts = listOfNotNull(settings.primaryContact, settings.secondaryContact)
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(imageVector = Icons.Default.Construction, contentDescription = null, tint = Color(0xFFFFB4AB), modifier = Modifier.size(14.dp))
             Spacer(Modifier.width(6.dp))
-            Text(text = "Verificación de enlace", fontWeight = FontWeight.Bold)
+            Text(text = "Simulacro de alerta", fontWeight = FontWeight.Bold)
         }
         Text(
-            text = "Envía un mensaje de prueba para asegurar que el sistema funciona correctamente.",
+            text = "Prueba todo el flujo (cuenta regresiva, alarma y aviso) sin que haya un accidente. " +
+                "Los SMS salen marcados como [PRUEBA]. Necesitas la protección activa.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text("Incluir llamada real", style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    "Llama de verdad al contacto principal durante el simulacro.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Switch(checked = settings.drillPlaceCall, onCheckedChange = onDrillPlaceCallChange)
+        }
         Button(
-            onClick = onSendTestSms,
+            onClick = onStartDrill,
+            enabled = drill == DrillUiState.Idle,
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = DarkSurfaceVariant),
             shape = RoundedCornerShape(12.dp)
         ) {
             Icon(imageVector = Icons.AutoMirrored.Filled.Send, contentDescription = null)
             Spacer(Modifier.width(8.dp))
-            Text(text = "Generar simulacro de alerta")
+            Text(text = "INICIAR SIMULACRO")
         }
-        
+        DrillDialogs(drill, contacts.size, settings, onConfirmDrill, onDismissDrill)
+
         Surface(
             color = DarkSurface,
             shape = RoundedCornerShape(12.dp),
@@ -431,6 +462,59 @@ private fun LinkVerificationSection(onSendTestSms: () -> Unit) {
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun DrillDialogs(
+    drill: DrillUiState,
+    contactCount: Int,
+    settings: AppSettings,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    when (drill) {
+        DrillUiState.Idle -> Unit
+        DrillUiState.Confirming -> AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text("¿Iniciar un simulacro?") },
+            text = {
+                val call = if (settings.drillPlaceCall) {
+                    " Además se llamará de verdad a ${settings.primaryContact?.name ?: "tu contacto principal"}."
+                } else {
+                    ""
+                }
+                Text(
+                    "Se enviará un SMS marcado como [PRUEBA] a tus $contactCount contacto(s) " +
+                        "de emergencia, con tu ubicación.$call Tendrás la cuenta regresiva para cancelar."
+                )
+            },
+            confirmButton = { Button(onClick = onConfirm) { Text("INICIAR") } },
+            dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } }
+        )
+        DrillUiState.Starting -> AlertDialog(
+            onDismissRequest = {},
+            title = { Text("Iniciando simulacro…") },
+            text = { Text("Contactando con el módulo.") },
+            confirmButton = {}
+        )
+        is DrillUiState.Blocked -> AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text("No se pudo iniciar") },
+            text = {
+                Text(
+                    when (drill.reason) {
+                        DrillUiState.Reason.NO_CONTACTS ->
+                            "Configura al menos un contacto de emergencia: sin él el simulacro no probaría nada."
+                        DrillUiState.Reason.PROTECTION_OFF ->
+                            "Activa la protección (pestaña Inicio) y vuelve a intentarlo."
+                        DrillUiState.Reason.ALERT_IN_PROGRESS ->
+                            "Ya hay una alerta en curso. Espera a que termine."
+                    }
+                )
+            },
+            confirmButton = { TextButton(onClick = onDismiss) { Text("Entendido") } }
+        )
     }
 }
 

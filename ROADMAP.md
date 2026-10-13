@@ -74,7 +74,7 @@ La maquina de estados ya está implementada y probada de forma local; falta cone
 
 ## Fase 6 — Simulacro, historial y caja negra
 
-- [ ] Implementar simulacro BLE con `TRIGGER_TEST_EVENT` y fallback local cuando no hay dispositivo; llamadas opcionales y SMS siempre marcados `[PRUEBA]`.
+- [x] Implementar simulacro BLE con `TRIGGER_TEST_EVENT` y fallback local cuando no hay dispositivo; llamadas opcionales y SMS siempre marcados `[PRUEBA]`. (`DrillStarter` + `GuardianStateMachine.startDrill()`. Pendiente: probar con el modulo fisico y en telefono con SIM; el firmware debe responder a `TRIGGER_TEST_EVENT` con un evento `TEST`.)
 - [ ] Implementar modo demo temporal (10 s, reglas relajadas, indicador visible) sin modificar los ajustes persistidos ni la configuracion del firmware.
 - [ ] Descargar trazas por chunks, reintentar hasta dos veces, validar longitud y guardar en Room; no competir con countdown/dispatch.
 - [ ] Crear historial/detalle Compose y grafica Canvas de -3 a +3 s con instante del disparo, umbral y saturacion.

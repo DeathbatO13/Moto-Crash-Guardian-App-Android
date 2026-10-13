@@ -156,6 +156,82 @@ class GuardianStateMachineTest {
         assertEquals(stored, (testMachine.state.value as GuardianState.Dispatched).incident)
     }
 
+    // --- Simulacro local (sin modulo BLE) ---
+
+    @Test
+    fun `simulacro local inicia una cuenta regresiva DRILL persistida`() = runTest {
+        val repository = newIncidentRepository()
+        val testMachine = newMachine(newSettingsRepository(), repository)
+        testMachine.startTrip()
+
+        testMachine.startDrill()
+
+        val countdown = testMachine.state.value as GuardianState.Countdown
+        assertEquals(IncidentType.DRILL, countdown.incident.type)
+        assertEquals(TriggerType.TEST, countdown.incident.triggerType)
+        assertEquals(IncidentStatus.ACTIVE, countdown.incident.status)
+        assertEquals(clock().instant().plusSeconds(20), countdown.deadline)
+        assertEquals(countdown.incident, repository.getIncident(countdown.incident.id))
+        assertTrue(testMachine.effects.first() is GuardianEffect.CountdownStarted)
+    }
+
+    @Test
+    fun `simulacro local se puede cancelar y vuelve a monitoring`() = runTest {
+        val repository = newIncidentRepository()
+        val testMachine = newMachine(newSettingsRepository(), repository)
+        testMachine.startTrip()
+        testMachine.startDrill()
+        val incident = (testMachine.state.value as GuardianState.Countdown).incident
+
+        testMachine.cancelCountdown()
+
+        assertEquals(GuardianState.Monitoring, testMachine.state.value)
+        assertEquals(
+            IncidentStatus.CANCELLED_BY_USER,
+            repository.getIncident(incident.id)?.status
+        )
+    }
+
+    @Test
+    fun `simulacro local despacha al terminar la cuenta`() = runTest {
+        val testMachine = newMachine(newSettingsRepository(), newIncidentRepository())
+        testMachine.startTrip()
+        testMachine.startDrill()
+
+        advanceTimeBy(20_000)
+        runCurrent()
+
+        assertTrue(testMachine.state.value is GuardianState.Dispatching)
+    }
+
+    @Test
+    fun `simulacro local funciona sin modulo, en ConnectionLost`() = runTest {
+        val testMachine = newMachine(newSettingsRepository(), newIncidentRepository())
+        testMachine.startTrip()
+        testMachine.onConnectionLost()
+        assertEquals(GuardianState.ConnectionLost, testMachine.state.value)
+
+        testMachine.startDrill()
+
+        val countdown = testMachine.state.value as GuardianState.Countdown
+        assertEquals(IncidentType.DRILL, countdown.incident.type)
+    }
+
+    @Test
+    fun `simulacro local se ignora sin viaje activo y durante otra alerta`() = runTest {
+        val testMachine = newMachine(newSettingsRepository(), newIncidentRepository())
+
+        testMachine.startDrill() // Idle
+        assertEquals(GuardianState.Idle, testMachine.state.value)
+
+        testMachine.startTrip()
+        testMachine.startDrill()
+        val first = (testMachine.state.value as GuardianState.Countdown).incident
+
+        testMachine.startDrill() // ya hay una cuenta en curso
+        assertEquals(first, (testMachine.state.value as GuardianState.Countdown).incident)
+    }
+
     @Test
     fun `restaurar cuenta calcula el deadline original y despacha si ya vencio`() = runTest {
         val repository = newIncidentRepository()
