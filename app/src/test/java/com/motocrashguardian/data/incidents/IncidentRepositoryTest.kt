@@ -170,6 +170,90 @@ class IncidentRepositoryTest {
         assertEquals(old, repository.getIncident(old.id))
     }
 
+    // --- Caja negra descargada despues del incidente ---
+
+    @Test
+    fun `lista solo incidentes del modulo, cerrados y sin traza, los mas nuevos primero`() = runTest {
+        val repository = newRepository()
+        val older = sampleIncident(Instant.parse("2026-10-06T01:00:00Z"), deviceEventKey = "57:1")
+        val newer = sampleIncident(Instant.parse("2026-10-06T02:00:00Z"), deviceEventKey = "57:2")
+        val withTrace = sampleIncident(Instant.parse("2026-10-06T03:00:00Z"), deviceEventKey = "57:3")
+        val noKey = sampleIncident(Instant.parse("2026-10-06T04:00:00Z"), deviceEventKey = null)
+        val active = sampleIncident(Instant.parse("2026-10-06T05:00:00Z"), deviceEventKey = "57:5")
+            .copy(status = IncidentStatus.ACTIVE)
+        assertTrue(repository.recordIncident(older))
+        assertTrue(repository.recordIncident(newer))
+        assertTrue(repository.recordIncident(withTrace, sampleTrace(withTrace.id, totalSamples = 1)))
+        assertTrue(repository.recordIncident(noKey))
+        assertTrue(repository.recordIncident(active))
+
+        val missing = repository.incidentsMissingTrace(10)
+
+        assertEquals(listOf(newer.id, older.id), missing.map { it.id })
+    }
+
+    @Test
+    fun `respeta el limite al listar incidentes sin traza`() = runTest {
+        val repository = newRepository()
+        repeat(4) {
+            assertTrue(
+                repository.recordIncident(
+                    sampleIncident(Instant.parse("2026-10-06T01:00:00Z").plusSeconds(it.toLong()), "57:$it")
+                )
+            )
+        }
+
+        assertEquals(2, repository.incidentsMissingTrace(2).size)
+    }
+
+    @Test
+    fun `adjuntar una traza la guarda intacta y el incidente deja de estar pendiente de traza`() = runTest {
+        val repository = newRepository()
+        val incident = sampleIncident(deviceEventKey = "57:1")
+        assertTrue(repository.recordIncident(incident))
+        val trace = sampleTrace(incident.id, totalSamples = 40)
+
+        assertTrue(repository.attachTrace(trace))
+
+        val stored = repository.getTrace(incident.id)!!
+        assertEquals(40, stored.totalSamples)
+        assertTrue(trace.samples.contentEquals(stored.samples))
+        assertEquals(emptyList<Incident>(), repository.incidentsMissingTrace(10))
+    }
+
+    @Test
+    fun `no sobrescribe una traza que ya existe`() = runTest {
+        val repository = newRepository()
+        val incident = sampleIncident(deviceEventKey = "57:1")
+        assertTrue(repository.recordIncident(incident, sampleTrace(incident.id, totalSamples = 1)))
+
+        assertEquals(false, repository.attachTrace(sampleTrace(incident.id, totalSamples = 2)))
+
+        assertEquals(1, repository.getTrace(incident.id)?.totalSamples)
+    }
+
+    @Test
+    fun `adjuntar la traza de un incidente ya respaldado lo vuelve a pendiente para subirla`() = runTest {
+        val repository = newRepository()
+        val synced = sampleIncident(deviceEventKey = "57:1").copy(syncState = SyncState.SYNCED)
+        assertTrue(repository.recordIncident(synced))
+
+        assertTrue(repository.attachTrace(sampleTrace(synced.id, totalSamples = 1)))
+
+        assertEquals(SyncState.PENDING, repository.getIncident(synced.id)?.syncState)
+    }
+
+    @Test
+    fun `adjuntar una traza no toca el estado de un incidente que fallo de forma permanente`() = runTest {
+        val repository = newRepository()
+        val failed = sampleIncident(deviceEventKey = "57:1").copy(syncState = SyncState.FAILED_PERMANENT)
+        assertTrue(repository.recordIncident(failed))
+
+        assertTrue(repository.attachTrace(sampleTrace(failed.id, totalSamples = 1)))
+
+        assertEquals(SyncState.FAILED_PERMANENT, repository.getIncident(failed.id)?.syncState)
+    }
+
     @Test
     fun `flujo de observacion refleja inserciones`() = runTest {
         val repository = newRepository()

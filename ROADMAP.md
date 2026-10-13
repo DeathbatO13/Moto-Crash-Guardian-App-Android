@@ -76,7 +76,7 @@ La maquina de estados ya está implementada y probada de forma local; falta cone
 
 - [x] Implementar simulacro BLE con `TRIGGER_TEST_EVENT` y fallback local cuando no hay dispositivo; llamadas opcionales y SMS siempre marcados `[PRUEBA]`. (`DrillStarter` + `GuardianStateMachine.startDrill()`. Pendiente: probar con el modulo fisico y en telefono con SIM; el firmware debe responder a `TRIGGER_TEST_EVENT` con un evento `TEST`.)
 - [ ] Implementar modo demo temporal (10 s, reglas relajadas, indicador visible) sin modificar los ajustes persistidos ni la configuracion del firmware.
-- [ ] Descargar trazas por chunks, reintentar hasta dos veces, validar longitud y guardar en Room; no competir con countdown/dispatch.
+- [x] Descargar trazas por chunks, reintentar hasta dos veces, validar longitud y guardar en Room; no competir con countdown/dispatch. (`TraceDownloader` + `TraceFetcher` + `TraceDownloadCoordinator`. Pendiente: probar con el modulo fisico; el orden respuesta/chunks y el tamano real de las trazas dependen del firmware.)
 - [x] Crear historial/detalle Compose y grafica Canvas de -3 a +3 s con instante del disparo, umbral y saturacion. (Historial con filtro Todos/Reales/Simulacros, detalle con ubicacion y mapa, y grafica de aceleracion. Hasta que se implemente la descarga de trazas por BLE los incidentes no tendran caja negra y el detalle lo indica; el umbral dibujado es el actual, porque el de cada incidente no se guarda.)
 - [ ] Aplicar retencion de 100 incidentes y 90 dias de trazas; exportacion de diagnostico sin PII. (Hecho: 100 incidentes y purga de trazas de mas de 90 dias al iniciar la app. Pendiente: exportacion de diagnostico sin PII.)
 

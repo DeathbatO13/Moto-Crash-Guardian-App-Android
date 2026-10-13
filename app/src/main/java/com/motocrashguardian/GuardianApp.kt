@@ -2,6 +2,7 @@ package com.motocrashguardian
 
 import android.app.Application
 import android.util.Log
+import com.motocrashguardian.ble.TraceDownloadCoordinator
 import com.motocrashguardian.data.incidents.IncidentRepository
 import com.motocrashguardian.data.sync.SyncCoordinator
 import com.motocrashguardian.data.sync.SyncScheduler
@@ -22,6 +23,7 @@ class GuardianApp : Application() {
     @Inject lateinit var syncCoordinator: SyncCoordinator
     @Inject lateinit var syncScheduler: SyncScheduler
     @Inject lateinit var incidentRepository: IncidentRepository
+    @Inject lateinit var traceDownloads: TraceDownloadCoordinator
 
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
@@ -32,6 +34,8 @@ class GuardianApp : Application() {
         // Sincronizacion en segundo plano con el backend: nunca bloquea ni retrasa la emergencia.
         syncCoordinator.start(appScope)
         syncScheduler.ensurePeriodic()
+        // Cajas negras del modulo: se descargan solo sin alerta en curso (ver TraceDownloadCoordinator).
+        traceDownloads.start(appScope)
         appScope.launch { purgeExpiredTraces() }
         appScope.launch {
             try {

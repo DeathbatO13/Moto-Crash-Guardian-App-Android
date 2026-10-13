@@ -43,6 +43,14 @@ class IncidentRepository @Inject constructor(
         )
     }
 
+    /** Incidentes del modulo (con clave de evento) que aun no tienen caja negra, los mas nuevos primero. */
+    suspend fun incidentsMissingTrace(limit: Int): List<Incident> =
+        database.incidentDao().getIncidentsMissingTrace(limit).map(IncidentEntity::toDomain)
+
+    /** Guarda la traza de un incidente existente; `false` si ya tenia una (no se sobrescribe). */
+    suspend fun attachTrace(trace: Trace): Boolean =
+        database.incidentDao().attachTrace(trace.toEntity())
+
     suspend fun pendingSyncIncidents(limit: Int): List<Incident> =
         database.incidentDao().getPendingSyncIncidents(limit).map(IncidentEntity::toDomain)
 
