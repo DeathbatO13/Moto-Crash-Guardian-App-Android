@@ -8,6 +8,8 @@ import com.motocrashguardian.data.remote.AuthSession
 import com.motocrashguardian.data.remote.McgApi
 import com.motocrashguardian.data.remote.RegisterInstallationRequest
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import okhttp3.ResponseBody
 import retrofit2.Response
 import java.io.IOException
@@ -52,7 +54,15 @@ class SyncEngine(
     private val appVersion: String
 ) {
 
-    suspend fun run(): SyncResult {
+    /**
+     * Impide que una sincronizacion y un borrado de datos corran a la vez: sin esto, una subida
+     * en curso podria volver a crear en el servidor datos que el usuario acaba de borrar.
+     */
+    val lock = Mutex()
+
+    suspend fun run(): SyncResult = lock.withLock { runExclusive() }
+
+    private suspend fun runExclusive(): SyncResult {
         val settings = store.settings()
         if (settings.consentAcceptedAt == null) return SyncResult.Success(0, 0)
         if (!settings.configDirty && !settings.contactsDirty &&

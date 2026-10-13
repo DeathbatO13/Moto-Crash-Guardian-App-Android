@@ -14,6 +14,7 @@ import com.motocrashguardian.ui.onboarding.PairingScreen
 import com.motocrashguardian.ui.onboarding.PermissionsScreen
 import com.motocrashguardian.ui.onboarding.ProfileScreen
 import com.motocrashguardian.ui.onboarding.WelcomeScreen
+import com.motocrashguardian.ui.privacy.PrivacyScreen
 
 /** Rutas del graph (docs/02 UF-01, docs/06 §3). */
 object Route {
@@ -23,6 +24,7 @@ object Route {
     const val PERMISSIONS = "onboarding/permissions"  // S-03
     const val PAIRING = "onboarding/pairing"          // S-04
     const val HOME = "home"                           // S-10
+    const val PRIVACY = "privacy"                     // Privacidad y datos
 }
 
 /**
@@ -79,7 +81,21 @@ fun AppNavigation(
             )
         }
         composable(Route.HOME) {
-            HomeScreen(modifier = Modifier.fillMaxSize())
+            HomeScreen(
+                modifier = Modifier.fillMaxSize(),
+                onOpenPrivacy = { navController.navigate(Route.PRIVACY) }
+            )
+        }
+        composable(Route.PRIVACY) {
+            PrivacyScreen(
+                onBack = { navController.popBackStack() },
+                // Tras borrar todo el estado vuelve a ser el de una instalacion nueva.
+                onErased = {
+                    navController.navigate(Route.WELCOME) {
+                        popUpTo(Route.HOME) { inclusive = true }
+                    }
+                }
+            )
         }
     }
 }

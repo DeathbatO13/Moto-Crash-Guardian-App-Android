@@ -41,7 +41,7 @@ No recopilamos tu correo, contrasenas, contactos de la agenda (solo los que elig
 
 ## 6. Tus derechos
 
-Conforme a la Ley 1581 de 2012 (Colombia) puedes conocer, actualizar, rectificar y suprimir tus datos, y revocar la autorizacion. Desde la app puedes borrar tus datos locales y del servidor en *Ajustes → Privacidad → Borrar mis datos*. Tambien puedes escribir a `<correo-de-soporte>`.
+Conforme a la Ley 1581 de 2012 (Colombia) puedes conocer, actualizar, rectificar y suprimir tus datos, y revocar la autorizacion. Desde la app puedes borrar tus datos locales y del servidor con el icono de privacidad de la pantalla principal → *Borrar mis datos*. Tambien puedes escribir a `<correo-de-soporte>`.
 
 ## 7. Seguridad
 

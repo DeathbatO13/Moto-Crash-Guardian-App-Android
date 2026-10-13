@@ -31,6 +31,11 @@ class SyncScheduler(private val workManagerProvider: () -> WorkManager) : SyncTr
         withWorkManager { enqueueUniqueWork(OneTimeName, ExistingWorkPolicy.APPEND_OR_REPLACE, request) }
     }
 
+    /** Cancela la sincronizacion pendiente (p. ej. al borrar todos los datos). */
+    fun cancelPending() {
+        withWorkManager { cancelUniqueWork(OneTimeName) }
+    }
+
     /** Red de seguridad: reintenta periodicamente lo que haya quedado pendiente. */
     fun ensurePeriodic() {
         val request = PeriodicWorkRequestBuilder<SyncWorker>(PeriodHours, TimeUnit.HOURS)

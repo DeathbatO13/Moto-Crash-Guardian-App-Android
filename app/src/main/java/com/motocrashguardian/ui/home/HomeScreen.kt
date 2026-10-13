@@ -32,6 +32,7 @@ import com.motocrashguardian.ui.theme.SecondaryBlue
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
+    onOpenPrivacy: () -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val connectionState by viewModel.connectionState.collectAsState()
@@ -71,6 +72,14 @@ fun HomeScreen(
                                 fontWeight = FontWeight.Bold
                             )
                         }
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onOpenPrivacy) {
+                        Icon(
+                            imageVector = Icons.Default.PrivacyTip,
+                            contentDescription = "Privacidad y datos"
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
