@@ -33,6 +33,7 @@ import com.motocrashguardian.ui.theme.SecondaryBlue
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
+    onOpenHistory: () -> Unit = {},
     onOpenPrivacy: () -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel()
 ) {
@@ -77,6 +78,12 @@ fun HomeScreen(
                     }
                 },
                 actions = {
+                    IconButton(onClick = onOpenHistory) {
+                        Icon(
+                            imageVector = Icons.Default.History,
+                            contentDescription = "Historial de incidentes"
+                        )
+                    }
                     IconButton(onClick = onOpenPrivacy) {
                         Icon(
                             imageVector = Icons.Default.PrivacyTip,

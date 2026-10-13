@@ -155,6 +155,22 @@ class IncidentRepositoryTest {
     }
 
     @Test
+    fun `purga las trazas de mas de 90 dias y conserva el incidente`() = runTest {
+        val repository = newRepository()
+        val now = Instant.parse("2026-10-19T12:00:00Z")
+        val old = sampleIncident(detectedAt = now.minusSeconds(91L * 86_400))
+        val recent = sampleIncident(detectedAt = now.minusSeconds(89L * 86_400))
+        assertTrue(repository.recordIncident(old, sampleTrace(old.id, totalSamples = 1)))
+        assertTrue(repository.recordIncident(recent, sampleTrace(recent.id, totalSamples = 1)))
+
+        assertEquals(1, repository.purgeExpiredTraces(now))
+
+        assertNull(repository.getTrace(old.id))
+        assertTrue(repository.getTrace(recent.id) != null)
+        assertEquals(old, repository.getIncident(old.id))
+    }
+
+    @Test
     fun `flujo de observacion refleja inserciones`() = runTest {
         val repository = newRepository()
         val incident = sampleIncident()

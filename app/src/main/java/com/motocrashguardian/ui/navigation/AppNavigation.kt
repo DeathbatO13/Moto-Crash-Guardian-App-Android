@@ -4,9 +4,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.motocrashguardian.ui.history.HistoryScreen
+import com.motocrashguardian.ui.history.IncidentDetailScreen
+import com.motocrashguardian.ui.history.IncidentDetailViewModel
 import com.motocrashguardian.ui.home.HomeScreen
 import com.motocrashguardian.ui.onboarding.ConsentScreen
 import com.motocrashguardian.ui.onboarding.OnboardingViewModel
@@ -15,6 +20,7 @@ import com.motocrashguardian.ui.onboarding.PermissionsScreen
 import com.motocrashguardian.ui.onboarding.ProfileScreen
 import com.motocrashguardian.ui.onboarding.WelcomeScreen
 import com.motocrashguardian.ui.privacy.PrivacyScreen
+import java.util.UUID
 
 /** Rutas del graph (docs/02 UF-01, docs/06 §3). */
 object Route {
@@ -25,6 +31,10 @@ object Route {
     const val PAIRING = "onboarding/pairing"          // S-04
     const val HOME = "home"                           // S-10
     const val PRIVACY = "privacy"                     // Privacidad y datos
+    const val HISTORY = "history"                     // Historial de incidentes
+    const val INCIDENT_DETAIL = "history/{incidentId}" // Detalle de un incidente
+
+    fun incidentDetail(id: UUID) = "history/$id"
 }
 
 /**
@@ -83,8 +93,23 @@ fun AppNavigation(
         composable(Route.HOME) {
             HomeScreen(
                 modifier = Modifier.fillMaxSize(),
+                onOpenHistory = { navController.navigate(Route.HISTORY) },
                 onOpenPrivacy = { navController.navigate(Route.PRIVACY) }
             )
+        }
+        composable(Route.HISTORY) {
+            HistoryScreen(
+                onBack = { navController.popBackStack() },
+                onOpenIncident = { navController.navigate(Route.incidentDetail(it)) }
+            )
+        }
+        composable(
+            route = Route.INCIDENT_DETAIL,
+            arguments = listOf(
+                navArgument(IncidentDetailViewModel.IncidentIdArg) { type = NavType.StringType }
+            )
+        ) {
+            IncidentDetailScreen(onBack = { navController.popBackStack() })
         }
         composable(Route.PRIVACY) {
             PrivacyScreen(

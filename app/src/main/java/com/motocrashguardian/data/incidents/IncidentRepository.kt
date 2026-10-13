@@ -5,6 +5,7 @@ import com.motocrashguardian.core.model.SyncState
 import com.motocrashguardian.core.model.Trace
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.time.Duration
 import java.time.Instant
 import java.util.UUID
 import javax.inject.Inject
@@ -64,7 +65,12 @@ class IncidentRepository @Inject constructor(
     suspend fun deleteTracesOlderThan(cutoff: Instant): Int =
         database.incidentDao().deleteTracesBefore(cutoff.toEpochMilli())
 
+    /** Borra las trazas de mas de 90 dias; los incidentes se conservan (hasta 100). */
+    suspend fun purgeExpiredTraces(now: Instant = Instant.now()): Int =
+        deleteTracesOlderThan(now.minus(Duration.ofDays(TraceRetentionDays)))
+
     private companion object {
         const val MaxRetainedIncidents = 100
+        const val TraceRetentionDays = 90L
     }
 }

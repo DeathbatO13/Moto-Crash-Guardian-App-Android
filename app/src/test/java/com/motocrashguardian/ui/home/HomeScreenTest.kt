@@ -66,6 +66,19 @@ class HomeScreenTest {
     }
 
     @Test
+    fun elIconoDeHistorialAbreElHistorial() {
+        val viewModel = homeViewModel()
+        var opened = 0
+        composeRule.setContent {
+            MotoCrashGuardianTheme { HomeScreen(onOpenHistory = { opened++ }, viewModel = viewModel) }
+        }
+
+        composeRule.onNodeWithContentDescription("Historial de incidentes").performClick()
+
+        assertEquals(1, opened)
+    }
+
+    @Test
     fun muestraElNombreDeLaApp() {
         val viewModel = homeViewModel()
         composeRule.setContent {
