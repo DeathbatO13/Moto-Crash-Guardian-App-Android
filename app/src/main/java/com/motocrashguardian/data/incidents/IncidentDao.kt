@@ -33,6 +33,71 @@ abstract class IncidentDao {
     )
     abstract suspend fun getLatestActiveIncident(): IncidentEntity?
 
+
+    @Query(
+        """
+        SELECT * FROM incidents
+        WHERE sync_state = 'PENDING' AND status != 'ACTIVE'
+        ORDER BY detected_at ASC, id ASC
+        LIMIT :limit
+        """
+    )
+    abstract suspend fun getPendingSyncIncidents(limit: Int): List<IncidentEntity>
+
+    @Query(
+        """
+        UPDATE incidents
+        SET sync_state = :state, sync_attempts = sync_attempts + :attemptDelta
+        WHERE id = :id
+        """
+    )
+    abstract suspend fun updateIncidentSync(id: String, state: String, attemptDelta: Int)
+
+    @Query("UPDATE incident_traces SET sync_state = :state WHERE incident_id = :incidentId")
+    abstract suspend fun updateTraceSync(incidentId: String, state: String)
+
+    @Query("UPDATE incidents SET sync_state = 'PENDING' WHERE sync_state = 'SYNCED'")
+    protected abstract suspend fun resetSyncedIncidents()
+
+    @Query("UPDATE incident_traces SET sync_state = 'PENDING' WHERE sync_state = 'SYNCED'")
+    protected abstract suspend fun resetSyncedTraces()
+
+    @Transaction
+    open suspend fun resetSyncedToPending() {
+        resetSyncedIncidents()
+        resetSyncedTraces()
+    }
+
+    @Query(
+        """
+        SELECT i.* FROM incidents i
+        LEFT JOIN incident_traces t ON t.incident_id = i.id
+        WHERE t.incident_id IS NULL
+          AND i.device_event_key IS NOT NULL
+          AND i.status != 'ACTIVE'
+        ORDER BY i.detected_at DESC, i.id DESC
+        LIMIT :limit
+        """
+    )
+    abstract suspend fun getIncidentsMissingTrace(limit: Int): List<IncidentEntity>
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    protected abstract suspend fun insertTraceIfAbsent(trace: IncidentTraceEntity): Long
+
+    @Query("UPDATE incidents SET sync_state = 'PENDING' WHERE id = :id AND sync_state = 'SYNCED'")
+    protected abstract suspend fun reopenSyncedIncident(id: String)
+
+    /**
+     * Agrega la traza a un incidente ya guardado. Si el incidente ya se habia respaldado sin
+     * ella, vuelve a pendiente para que la sincronizacion suba tambien la traza.
+     * Devuelve `false` si el incidente ya tenia traza (no se sobrescribe).
+     */
+    @Transaction
+    open suspend fun attachTrace(trace: IncidentTraceEntity): Boolean {
+        if (insertTraceIfAbsent(trace) == -1L) return false
+        reopenSyncedIncident(trace.incidentId)
+        return true
+    }
     @Update
     abstract suspend fun updateIncidentRow(incident: IncidentEntity): Int
 

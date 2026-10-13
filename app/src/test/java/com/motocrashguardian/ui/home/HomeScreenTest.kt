@@ -2,7 +2,9 @@ package com.motocrashguardian.ui.home
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import com.motocrashguardian.ble.DeviceConnectionState
 import com.motocrashguardian.ble.DeviceRepository
 import com.motocrashguardian.core.model.AppSettings
@@ -15,6 +17,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -44,8 +47,35 @@ class HomeScreenTest {
             context = RuntimeEnvironment.getApplication(),
             deviceRepository = deviceRepository,
             settingsRepository = settingsRepository,
-            stateMachine = stateMachine
+            stateMachine = stateMachine,
+            drillStarter = mockk(relaxed = true)
         )
+    }
+
+    @Test
+    fun elIconoDePrivacidadAbreLaPantallaDePrivacidad() {
+        val viewModel = homeViewModel()
+        var opened = 0
+        composeRule.setContent {
+            MotoCrashGuardianTheme { HomeScreen(onOpenPrivacy = { opened++ }, viewModel = viewModel) }
+        }
+
+        composeRule.onNodeWithContentDescription("Privacidad y datos").performClick()
+
+        assertEquals(1, opened)
+    }
+
+    @Test
+    fun elIconoDeHistorialAbreElHistorial() {
+        val viewModel = homeViewModel()
+        var opened = 0
+        composeRule.setContent {
+            MotoCrashGuardianTheme { HomeScreen(onOpenHistory = { opened++ }, viewModel = viewModel) }
+        }
+
+        composeRule.onNodeWithContentDescription("Historial de incidentes").performClick()
+
+        assertEquals(1, opened)
     }
 
     @Test

@@ -74,19 +74,19 @@ La maquina de estados ya está implementada y probada de forma local; falta cone
 
 ## Fase 6 — Simulacro, historial y caja negra
 
-- [ ] Implementar simulacro BLE con `TRIGGER_TEST_EVENT` y fallback local cuando no hay dispositivo; llamadas opcionales y SMS siempre marcados `[PRUEBA]`.
+- [x] Implementar simulacro BLE con `TRIGGER_TEST_EVENT` y fallback local cuando no hay dispositivo; llamadas opcionales y SMS siempre marcados `[PRUEBA]`. (`DrillStarter` + `GuardianStateMachine.startDrill()`. Pendiente: probar con el modulo fisico y en telefono con SIM; el firmware debe responder a `TRIGGER_TEST_EVENT` con un evento `TEST`.)
 - [ ] Implementar modo demo temporal (10 s, reglas relajadas, indicador visible) sin modificar los ajustes persistidos ni la configuracion del firmware.
-- [ ] Descargar trazas por chunks, reintentar hasta dos veces, validar longitud y guardar en Room; no competir con countdown/dispatch.
-- [ ] Crear historial/detalle Compose y grafica Canvas de -3 a +3 s con instante del disparo, umbral y saturacion.
-- [ ] Aplicar retencion de 100 incidentes y 90 dias de trazas; exportacion de diagnostico sin PII.
+- [x] Descargar trazas por chunks, reintentar hasta dos veces, validar longitud y guardar en Room; no competir con countdown/dispatch. (`TraceDownloader` + `TraceFetcher` + `TraceDownloadCoordinator`. Pendiente: probar con el modulo fisico; el orden respuesta/chunks y el tamano real de las trazas dependen del firmware.)
+- [x] Crear historial/detalle Compose y grafica Canvas de -3 a +3 s con instante del disparo, umbral y saturacion. (Historial con filtro Todos/Reales/Simulacros, detalle con ubicacion y mapa, y grafica de aceleracion. Hasta que se implemente la descarga de trazas por BLE los incidentes no tendran caja negra y el detalle lo indica; el umbral dibujado es el actual, porque el de cada incidente no se guarda.)
+- [ ] Aplicar retencion de 100 incidentes y 90 dias de trazas; exportacion de diagnostico sin PII. (Hecho: 100 incidentes y purga de trazas de mas de 90 dias al iniciar la app. Pendiente: exportacion de diagnostico sin PII.)
 
 **Salida:** simulacro repetible e historial local verificable; cumplir FEAT-10/11.
 
 ## Fase 7 — Sincronizacion, seguridad y entrega
 
-- [ ] Integrar Retrofit/OkHttp y API v1 solo despues de estabilizar el contrato del Backend; guardar token con Android Keystore AES-GCM y excluir datos sensibles de backups.
-- [ ] Implementar WorkManager para registro, ajustes/contactos, incidentes y trazas; orden, idempotencia, reintentos, 401 y errores permanentes segun `specs/features/data-synchronization.md`.
-- [ ] Implementar ajustes, privacidad/borrado local-remoto y diagnostico BLE; asegurar que logs no contengan nombres, telefonos, coordenadas ni tokens.
+- [x] Integrar Retrofit/OkHttp y API v1 solo despues de estabilizar el contrato del Backend; guardar token con Android Keystore AES-GCM y excluir datos sensibles de backups. (Contrato verificado contra el backend real con PostgreSQL; el token se guarda cifrado con Keystore y las preferencias estan excluidas de los backups. Falta verificar el cifrado Keystore en un telefono real.)
+- [x] Implementar WorkManager para registro, ajustes/contactos, incidentes y trazas; orden, idempotencia, reintentos, 401 y errores permanentes segun `specs/features/data-synchronization.md`. (`SyncEngine` + `SyncWorker` + `SyncCoordinator`. Pendiente: confirmar los umbrales contra `specs/features/data-synchronization.md`, que no esta en este repo; los reintentos usan espera exponencial desde 30 s y se rinden tras 8 intentos.)
+- [ ] Implementar ajustes, privacidad/borrado local-remoto y diagnostico BLE; asegurar que logs no contengan nombres, telefonos, coordenadas ni tokens. (Hecho: pantalla Privacidad y datos con borrado local y remoto. Pendiente: pantalla de ajustes, diagnostico BLE y auditar que los logs no contengan datos personales.)
 - [ ] Completar pruebas Compose, matriz API 26/31/33/34/36 y fabricantes; medir consumo, robustez de FGS y accesibilidad NFR-014.
 - [ ] Ejecutar pruebas de campo: 9/10 caidas simuladas y 0 countdowns en 50 km; registrar evidencia en la bitacora del proyecto.
 - [ ] Generar el APK release firmado de entrega (`v1.0.0`) siguiendo el cronograma de `docs/DISTRIBUCION_APK.md` §4 y ensayar dos veces el guion de demo.
