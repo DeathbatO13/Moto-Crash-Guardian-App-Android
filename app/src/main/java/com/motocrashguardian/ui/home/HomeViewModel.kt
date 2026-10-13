@@ -60,14 +60,21 @@ class HomeViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             settingsRepository.updateSettings { current ->
+                val primary = EmergencyContact(ContactRole.PRIMARY, primaryName, primaryPhone)
+                val secondary = if (secondaryName.isNotBlank() || secondaryPhone.isNotBlank()) {
+                    EmergencyContact(ContactRole.SECONDARY, secondaryName, secondaryPhone)
+                } else {
+                    null
+                }
                 current.copy(
                     riderName = name,
-                    primaryContact = EmergencyContact(ContactRole.PRIMARY, primaryName, primaryPhone),
-                    secondaryContact = if (secondaryName.isNotBlank() || secondaryPhone.isNotBlank()) {
-                        EmergencyContact(ContactRole.SECONDARY, secondaryName, secondaryPhone)
-                    } else {
-                        null
-                    }
+                    primaryContact = primary,
+                    secondaryContact = secondary,
+                    // Pendiente de subir al backend solo si algo cambio de verdad.
+                    configDirty = current.configDirty || current.riderName != name,
+                    contactsDirty = current.contactsDirty ||
+                        current.primaryContact != primary ||
+                        current.secondaryContact != secondary
                 )
             }
         }

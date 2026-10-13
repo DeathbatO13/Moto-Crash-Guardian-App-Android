@@ -1,6 +1,7 @@
 package com.motocrashguardian.data.incidents
 
 import com.motocrashguardian.core.model.Incident
+import com.motocrashguardian.core.model.SyncState
 import com.motocrashguardian.core.model.Trace
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -39,6 +40,21 @@ class IncidentRepository @Inject constructor(
             trace = trace?.toEntity(),
             retainedCount = MaxRetainedIncidents
         )
+    }
+
+    suspend fun pendingSyncIncidents(limit: Int): List<Incident> =
+        database.incidentDao().getPendingSyncIncidents(limit).map(IncidentEntity::toDomain)
+
+    suspend fun markIncidentSync(id: UUID, state: SyncState, countAttempt: Boolean) {
+        database.incidentDao().updateIncidentSync(id.toString(), state.name, if (countAttempt) 1 else 0)
+    }
+
+    suspend fun markTraceSync(incidentId: UUID, state: SyncState) {
+        database.incidentDao().updateTraceSync(incidentId.toString(), state.name)
+    }
+
+    suspend fun resetSyncedToPending() {
+        database.incidentDao().resetSyncedToPending()
     }
 
     suspend fun deleteIncident(id: UUID) {

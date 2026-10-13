@@ -33,6 +33,40 @@ abstract class IncidentDao {
     )
     abstract suspend fun getLatestActiveIncident(): IncidentEntity?
 
+
+    @Query(
+        """
+        SELECT * FROM incidents
+        WHERE sync_state = 'PENDING' AND status != 'ACTIVE'
+        ORDER BY detected_at ASC, id ASC
+        LIMIT :limit
+        """
+    )
+    abstract suspend fun getPendingSyncIncidents(limit: Int): List<IncidentEntity>
+
+    @Query(
+        """
+        UPDATE incidents
+        SET sync_state = :state, sync_attempts = sync_attempts + :attemptDelta
+        WHERE id = :id
+        """
+    )
+    abstract suspend fun updateIncidentSync(id: String, state: String, attemptDelta: Int)
+
+    @Query("UPDATE incident_traces SET sync_state = :state WHERE incident_id = :incidentId")
+    abstract suspend fun updateTraceSync(incidentId: String, state: String)
+
+    @Query("UPDATE incidents SET sync_state = 'PENDING' WHERE sync_state = 'SYNCED'")
+    protected abstract suspend fun resetSyncedIncidents()
+
+    @Query("UPDATE incident_traces SET sync_state = 'PENDING' WHERE sync_state = 'SYNCED'")
+    protected abstract suspend fun resetSyncedTraces()
+
+    @Transaction
+    open suspend fun resetSyncedToPending() {
+        resetSyncedIncidents()
+        resetSyncedTraces()
+    }
     @Update
     abstract suspend fun updateIncidentRow(incident: IncidentEntity): Int
 

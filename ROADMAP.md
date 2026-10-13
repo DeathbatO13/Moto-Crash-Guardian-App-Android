@@ -84,8 +84,8 @@ La maquina de estados ya está implementada y probada de forma local; falta cone
 
 ## Fase 7 — Sincronizacion, seguridad y entrega
 
-- [ ] Integrar Retrofit/OkHttp y API v1 solo despues de estabilizar el contrato del Backend; guardar token con Android Keystore AES-GCM y excluir datos sensibles de backups.
-- [ ] Implementar WorkManager para registro, ajustes/contactos, incidentes y trazas; orden, idempotencia, reintentos, 401 y errores permanentes segun `specs/features/data-synchronization.md`.
+- [x] Integrar Retrofit/OkHttp y API v1 solo despues de estabilizar el contrato del Backend; guardar token con Android Keystore AES-GCM y excluir datos sensibles de backups. (Contrato verificado contra el backend real con PostgreSQL; el token se guarda cifrado con Keystore y las preferencias estan excluidas de los backups. Falta verificar el cifrado Keystore en un telefono real.)
+- [x] Implementar WorkManager para registro, ajustes/contactos, incidentes y trazas; orden, idempotencia, reintentos, 401 y errores permanentes segun `specs/features/data-synchronization.md`. (`SyncEngine` + `SyncWorker` + `SyncCoordinator`. Pendiente: confirmar los umbrales contra `specs/features/data-synchronization.md`, que no esta en este repo; los reintentos usan espera exponencial desde 30 s y se rinden tras 8 intentos.)
 - [ ] Implementar ajustes, privacidad/borrado local-remoto y diagnostico BLE; asegurar que logs no contengan nombres, telefonos, coordenadas ni tokens.
 - [ ] Completar pruebas Compose, matriz API 26/31/33/34/36 y fabricantes; medir consumo, robustez de FGS y accesibilidad NFR-014.
 - [ ] Ejecutar pruebas de campo: 9/10 caidas simuladas y 0 countdowns en 50 km; registrar evidencia en la bitacora del proyecto.
