@@ -11,9 +11,13 @@ import com.motocrashguardian.core.model.AppSettings
 import com.motocrashguardian.data.settings.SettingsRepository
 import com.motocrashguardian.detection.GuardianState
 import com.motocrashguardian.detection.GuardianStateMachine
+import com.motocrashguardian.emergency.DemoModeController
 import com.motocrashguardian.ui.theme.MotoCrashGuardianTheme
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
@@ -32,6 +36,8 @@ class HomeScreenTest {
     val composeRule = createComposeRule()
 
     /** HomeScreen usa hiltViewModel() por defecto; sin Hilt en el test se le inyecta uno armado a mano. */
+    private val demoMode = DemoModeController(CoroutineScope(SupervisorJob() + Dispatchers.Unconfined))
+
     private fun homeViewModel(): HomeViewModel {
         val deviceRepository = mockk<DeviceRepository>(relaxed = true) {
             every { connectionState } returns MutableStateFlow(DeviceConnectionState.DISCONNECTED)
@@ -48,7 +54,8 @@ class HomeScreenTest {
             deviceRepository = deviceRepository,
             settingsRepository = settingsRepository,
             stateMachine = stateMachine,
-            drillStarter = mockk(relaxed = true)
+            drillStarter = mockk(relaxed = true),
+            demoMode = demoMode
         )
     }
 
