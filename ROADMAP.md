@@ -45,7 +45,7 @@ La maquina de estados ya está implementada y probada de forma local; falta cone
 - [ ] Implementar `GuardianBleManager` con Nordic BLE Library y `DeviceRepository`: MTU 247, descubrimiento/validacion GATT, cifrado, suscripciones, comandos correlacionados, timeout y estados incompatibles.
 - [ ] Implementar deduplicacion y `ACK_EVENT` incluso para duplicados; guardar el evento en Room antes del ACK y tratar eventos de mas de 5 minutos como `STALE_EVENT`.
 - [ ] Implementar `GuardianService` como FGS connected-device/location, notificacion persistente, reconexion con backoff, resuscripcion y re-ARM tras reconectar/recrear proceso.
-- [ ] Implementar iniciar/terminar viaje, `ARM`/`DISARM`, estado degradado y telemetria de inicio, sin admitir armado sin los requisitos definidos.
+- [ ] Implementar iniciar/terminar viaje, `ARM`/`DISARM`, estado degradado y telemetria de inicio, sin admitir armado sin los requisitos definidos. (Parcial: `ModuleArmer` ya envia `ARM` al iniciar el viaje con el modulo conectado, re-arma si el modulo vuelve a `DISARMED` y envia `DISARM` al terminar; sin esto el firmware, que arranca desarmado, no detectaba caidas. Pendiente: estado degradado, telemetria de inicio y los requisitos previos al armado.)
 - [ ] Verificar en telefono real pantalla apagada durante 30 minutos, cierre desde recientes y reconexion en menos de 10 segundos (NFR-004/005).
 
 **Salida:** viaje activo con enlace BLE persistente y estado visible; cumplir FEAT-01, FEAT-02 y FEAT-05.
