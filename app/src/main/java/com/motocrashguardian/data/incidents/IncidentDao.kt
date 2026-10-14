@@ -75,6 +75,7 @@ abstract class IncidentDao {
         WHERE t.incident_id IS NULL
           AND i.device_event_key IS NOT NULL
           AND i.status != 'ACTIVE'
+          AND i.trigger_type != 'TEST'
         ORDER BY i.detected_at DESC, i.id DESC
         LIMIT :limit
         """

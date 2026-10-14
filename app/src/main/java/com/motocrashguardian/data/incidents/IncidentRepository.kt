@@ -43,7 +43,10 @@ class IncidentRepository @Inject constructor(
         )
     }
 
-    /** Incidentes del modulo (con clave de evento) que aun no tienen caja negra, los mas nuevos primero. */
+    /**
+     * Incidentes del modulo (con clave de evento) que aun no tienen caja negra, los mas nuevos
+     * primero. Los eventos TEST se excluyen: el firmware los emite sin traza.
+     */
     suspend fun incidentsMissingTrace(limit: Int): List<Incident> =
         database.incidentDao().getIncidentsMissingTrace(limit).map(IncidentEntity::toDomain)
 

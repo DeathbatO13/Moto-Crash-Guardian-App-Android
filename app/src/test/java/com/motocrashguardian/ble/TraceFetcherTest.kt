@@ -7,13 +7,22 @@ import com.motocrashguardian.core.model.IncidentType
 import com.motocrashguardian.core.model.Trace
 import com.motocrashguardian.core.model.TriggerType
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.currentTime
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import java.time.Clock
 import java.time.Instant
+import java.time.ZoneId
+import java.time.ZoneOffset
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class TraceFetcherTest {
 
     private val now = Instant.parse("2026-10-19T15:30:00Z")
@@ -43,13 +52,31 @@ class TraceFetcherTest {
         }
     }
 
-    private fun fetcher(maxPerRun: Int = 5) =
-        TraceFetcher(source, store, currentBootCount = { bootCount }, maxPerRun = maxPerRun)
+    // "Ahora" es 10 s despues del incidente: la traza del modulo ya esta congelada.
+    private var clockNow: Instant = now.plusSeconds(10)
+    private val clock = object : Clock() {
+        override fun getZone() = ZoneOffset.UTC
+        override fun withZone(zone: ZoneId?) = this
+        override fun instant(): Instant = clockNow
+    }
 
-    private fun incident(key: String?, offset: Long = 0, status: IncidentStatus = IncidentStatus.DISPATCHED) =
+    private fun fetcher(maxPerRun: Int = 5) = TraceFetcher(
+        source,
+        store,
+        currentBootCount = { bootCount },
+        maxPerRun = maxPerRun,
+        clock = clock
+    )
+
+    private fun incident(
+        key: String?,
+        offset: Long = 0,
+        status: IncidentStatus = IncidentStatus.DISPATCHED,
+        trigger: TriggerType = TriggerType.IMPACT
+    ) =
         Incident(
             type = IncidentType.REAL,
-            triggerType = TriggerType.IMPACT,
+            triggerType = trigger,
             status = status,
             deviceEventKey = key,
             detectedAt = now.plusSeconds(offset)
@@ -208,6 +235,67 @@ class TraceFetcherTest {
         alreadyHasTrace = true
 
         assertEquals(0, fetcher().fetchPending())
+    }
+
+    // --- Con el firmware real (TRIGGER_TEST_EVENT y fin de captura) ---
+
+    @Test
+    fun `los eventos TEST no se piden porque el firmware los emite sin traza`() = runTest {
+        incidents += incident("57:3", trigger = TriggerType.TEST)
+
+        assertEquals(0, fetcher().fetchPending())
+
+        assertTrue(requestedEvents.isEmpty())
+    }
+
+    @Test
+    fun `un incidente recien creado espera a que el modulo termine de capturar`() = runTest {
+        clockNow = now.plusSeconds(1) // el incidente tiene 1 s
+        incidents += incident("57:3")
+
+        fetcher().fetchPending()
+
+        // Faltan 4 s para llegar a los 5 s de edad minima (3 s de captura + margen).
+        assertEquals(4_000, currentTime)
+        assertEquals(listOf(3), requestedEvents)
+    }
+
+    @Test
+    fun `un incidente con edad suficiente se pide sin esperar`() = runTest {
+        clockNow = now.plusSeconds(5)
+        incidents += incident("57:3")
+
+        fetcher().fetchPending()
+
+        assertEquals(0, currentTime)
+    }
+
+    @Test
+    fun `un reloj atrasado no provoca esperas mayores a la edad minima`() = runTest {
+        clockNow = now.minusSeconds(3600) // el incidente parece del futuro
+        incidents += incident("57:3")
+
+        fetcher().fetchPending()
+
+        assertEquals(5_000, currentTime)
+    }
+
+    @Test
+    fun `cancelar durante la espera no marca el evento como intentado`() = runTest {
+        clockNow = now.plusSeconds(1)
+        incidents += incident("57:3")
+        val fetcher = fetcher()
+        val job = backgroundScope.launch { fetcher.fetchPending() }
+        runCurrent()
+        advanceTimeBy(2_000)
+
+        job.cancel() // empezo una alerta
+        runCurrent()
+        assertTrue(requestedEvents.isEmpty())
+
+        clockNow = now.plusSeconds(10)
+        assertEquals(1, fetcher.fetchPending())
+        assertEquals(listOf(3), requestedEvents)
     }
 
     @Test
