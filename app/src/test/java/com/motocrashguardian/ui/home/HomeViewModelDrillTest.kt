@@ -9,6 +9,8 @@ import com.motocrashguardian.core.model.EmergencyContact
 import com.motocrashguardian.data.settings.SettingsRepository
 import com.motocrashguardian.detection.GuardianState
 import com.motocrashguardian.detection.GuardianStateMachine
+import com.motocrashguardian.emergency.DemoModeController
+import com.motocrashguardian.emergency.DemoState
 import com.motocrashguardian.emergency.DrillOutcome
 import com.motocrashguardian.emergency.DrillStarter
 import io.mockk.coEvery
@@ -16,6 +18,8 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,6 +31,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -40,6 +45,7 @@ class HomeViewModelDrillTest {
     private val settingsFlow = MutableStateFlow(settings)
     private val settingsRepository = mockk<SettingsRepository>()
     private val drillStarter = mockk<DrillStarter>()
+    private val demoMode = DemoModeController(CoroutineScope(SupervisorJob() + Dispatchers.Unconfined))
 
     @BeforeEach
     fun setUp() {
@@ -68,7 +74,8 @@ class HomeViewModelDrillTest {
             deviceRepository = deviceRepository,
             settingsRepository = settingsRepository,
             stateMachine = stateMachine,
-            drillStarter = drillStarter
+            drillStarter = drillStarter,
+            demoMode = demoMode
         )
     }
 
@@ -156,6 +163,66 @@ class HomeViewModelDrillTest {
         gate.complete(DrillOutcome.Started(viaDevice = false, fellBack = false))
         advanceUntilIdle()
         assertEquals(DrillUiState.Idle, vm.drill.value)
+    }
+
+    // --- Modo demo ---
+
+    @Test
+    fun `pedir el demo solo abre la confirmacion y no lo activa`() = runTest(dispatcher) {
+        val vm = viewModel()
+
+        vm.requestDemoMode(true)
+
+        assertEquals(true, vm.demoConfirmation.value)
+        assertEquals(DemoState.Off, vm.demo.value)
+        assertEquals(false, demoMode.isActive())
+    }
+
+    @Test
+    fun `confirmar activa el demo y cierra la confirmacion`() = runTest(dispatcher) {
+        val vm = viewModel()
+        vm.requestDemoMode(true)
+
+        vm.confirmDemoMode()
+
+        assertEquals(false, vm.demoConfirmation.value)
+        assertTrue(vm.demo.value is DemoState.On)
+        assertEquals(true, demoMode.isActive())
+    }
+
+    @Test
+    fun `cancelar la confirmacion no activa el demo`() = runTest(dispatcher) {
+        val vm = viewModel()
+        vm.requestDemoMode(true)
+
+        vm.dismissDemoMode()
+
+        assertEquals(false, vm.demoConfirmation.value)
+        assertEquals(false, demoMode.isActive())
+    }
+
+    @Test
+    fun `apagar el demo es inmediato y no pide confirmacion`() = runTest(dispatcher) {
+        val vm = viewModel()
+        vm.requestDemoMode(true)
+        vm.confirmDemoMode()
+
+        vm.requestDemoMode(false)
+
+        assertEquals(false, vm.demoConfirmation.value)
+        assertEquals(DemoState.Off, vm.demo.value)
+    }
+
+    @Test
+    fun `activar el demo no escribe en los ajustes guardados`() = runTest(dispatcher) {
+        val vm = viewModel()
+
+        vm.requestDemoMode(true)
+        vm.confirmDemoMode()
+        advanceUntilIdle()
+
+        assertEquals(settings, settingsFlow.value)
+        coVerify(exactly = 0) { settingsRepository.updateSettings(any()) }
     }
 
     @Test

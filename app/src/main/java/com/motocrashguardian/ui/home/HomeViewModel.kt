@@ -13,6 +13,8 @@ import com.motocrashguardian.core.model.Telemetry
 import com.motocrashguardian.data.settings.SettingsRepository
 import com.motocrashguardian.detection.GuardianState
 import com.motocrashguardian.detection.GuardianStateMachine
+import com.motocrashguardian.emergency.DemoModeController
+import com.motocrashguardian.emergency.DemoState
 import com.motocrashguardian.emergency.DrillOutcome
 import com.motocrashguardian.emergency.DrillStarter
 import com.motocrashguardian.service.GuardianService
@@ -33,11 +35,37 @@ class HomeViewModel @Inject constructor(
     private val deviceRepository: DeviceRepository,
     private val settingsRepository: SettingsRepository,
     private val stateMachine: GuardianStateMachine,
-    private val drillStarter: DrillStarter
+    private val drillStarter: DrillStarter,
+    private val demoMode: DemoModeController
 ) : ViewModel() {
 
     private val mutableDrill = MutableStateFlow<DrillUiState>(DrillUiState.Idle)
     val drill: StateFlow<DrillUiState> = mutableDrill.asStateFlow()
+
+    /** Modo demo temporal; vive en memoria y caduca solo (ver [DemoModeController]). */
+    val demo: StateFlow<DemoState> = demoMode.state
+
+    /** El interruptor pide confirmacion al activar (explica el efecto); al apagar es inmediato. */
+    private val mutableDemoConfirm = MutableStateFlow(false)
+    val demoConfirmation: StateFlow<Boolean> = mutableDemoConfirm.asStateFlow()
+
+    fun requestDemoMode(enable: Boolean) {
+        if (enable) {
+            mutableDemoConfirm.value = true
+        } else {
+            mutableDemoConfirm.value = false
+            demoMode.disable()
+        }
+    }
+
+    fun confirmDemoMode() {
+        mutableDemoConfirm.value = false
+        demoMode.enable()
+    }
+
+    fun dismissDemoMode() {
+        mutableDemoConfirm.value = false
+    }
 
     val connectionState: StateFlow<DeviceConnectionState> = deviceRepository.connectionState
     val telemetry: StateFlow<Telemetry?> = deviceRepository.telemetry

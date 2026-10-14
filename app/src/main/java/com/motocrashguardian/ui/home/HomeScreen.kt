@@ -41,6 +41,8 @@ fun HomeScreen(
     val telemetry by viewModel.telemetry.collectAsState()
     val settings by viewModel.settings.collectAsState()
     val drill by viewModel.drill.collectAsState()
+    val demo by viewModel.demo.collectAsState()
+    val demoConfirmation by viewModel.demoConfirmation.collectAsState()
 
     var selectedTab by remember { mutableIntStateOf(1) }
 
@@ -130,6 +132,15 @@ fun HomeScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
+            // Visible en todas las pestañas mientras el demo este activo.
+            DemoBanner(state = demo, onDisable = { viewModel.requestDemoMode(false) })
+            if (demoConfirmation) {
+                DemoConfirmDialog(
+                    onConfirm = viewModel::confirmDemoMode,
+                    onDismiss = viewModel::dismissDemoMode
+                )
+            }
+
             when (selectedTab) {
                 1 -> {
                     // Pestaña Contactos
@@ -218,6 +229,10 @@ fun HomeScreen(
                     ProtectionToggle(
                         isActive = connectionState == DeviceConnectionState.READY,
                         onToggle = { viewModel.toggleProtection() }
+                    )
+                    DemoModeCard(
+                        state = demo,
+                        onToggle = viewModel::requestDemoMode
                     )
                     TelemetryCard(telemetry)
                 }

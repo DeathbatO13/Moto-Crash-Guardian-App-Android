@@ -32,7 +32,9 @@ class GuardianStateMachine(
     private val settingsRepository: SettingsRepository,
     private val confirmationEngine: ConfirmationEngine,
     private val scope: CoroutineScope,
-    private val clock: Clock = Clock.systemUTC()
+    private val clock: Clock = Clock.systemUTC(),
+    /** Modo demo temporal (en memoria). Solo cuenta lo que responde aqui, nunca lo guardado. */
+    private val isDemoActive: () -> Boolean = { false }
 ) {
     private val commands = Channel<Command>(Channel.UNLIMITED)
     private val effectChannel = Channel<GuardianEffect>(Channel.UNLIMITED)
@@ -142,7 +144,7 @@ class GuardianStateMachine(
     private suspend fun restoreState() {
         if (mutableState.value !is GuardianState.Idle) return
 
-        val settings = settingsRepository.settings.first()
+        val settings = currentSettings()
         val activeIncident = incidentRepository.getLatestActiveIncident()
         if (activeIncident == null) {
             mutableState.value = if (settings.tripActive) {
@@ -199,7 +201,7 @@ class GuardianStateMachine(
                 is GuardianState.Countdown, is GuardianState.Dispatching ->
                     mergeEventIntoActiveIncident(command.event)
                 GuardianState.Monitoring -> if (persistedDuplicate.status == IncidentStatus.ACTIVE) {
-                    val settings = settingsRepository.settings.first()
+                    val settings = currentSettings()
                     beginCountdown(
                         persistedDuplicate,
                         persistedDuplicate.countdownDeadlineOrFallback(settings)
@@ -213,7 +215,7 @@ class GuardianStateMachine(
         val current = mutableState.value
         if (current != GuardianState.Monitoring) return
 
-        val settings = settingsRepository.settings.first()
+        val settings = currentSettings()
         val decision = confirmationEngine.evaluate(
             event = command.event,
             telemetry = command.telemetry,
@@ -403,7 +405,7 @@ class GuardianStateMachine(
 
     private suspend fun requestHelpInternal() {
         if (mutableState.value != GuardianState.ConnectionLost) return
-        val settings = settingsRepository.settings.first()
+        val settings = currentSettings()
         val detectedAt = clock.instant()
         val deadline = detectedAt.plusSeconds(settings.countdownSeconds.toLong())
         val incident = Incident(
@@ -422,7 +424,7 @@ class GuardianStateMachine(
     private suspend fun startDrillInternal() {
         val current = mutableState.value
         if (current != GuardianState.Monitoring && current != GuardianState.ConnectionLost) return
-        val settings = settingsRepository.settings.first()
+        val settings = currentSettings()
         val detectedAt = clock.instant()
         val deadline = detectedAt.plusSeconds(settings.countdownSeconds.toLong())
         val incident = Incident(
@@ -483,6 +485,20 @@ class GuardianStateMachine(
         countdownJob = scope.launch {
             delay(maxOf(0L, Duration.between(clock.instant(), deadline).toMillis()))
             send(Command.CountdownEnded(deadline))
+        }
+    }
+
+    /**
+     * Ajustes efectivos. En demo la cuenta regresiva es corta y se aplican las reglas relajadas,
+     * sin escribir en los ajustes guardados ni en la configuracion del modulo. El `demoMode`
+     * guardado se ignora: solo el modo temporal activo cuenta.
+     */
+    private suspend fun currentSettings(): AppSettings {
+        val stored = settingsRepository.settings.first()
+        return if (isDemoActive()) {
+            stored.copy(demoMode = true, countdownSeconds = DemoCountdownSeconds)
+        } else {
+            stored.copy(demoMode = false)
         }
     }
 
@@ -566,6 +582,8 @@ class GuardianStateMachine(
             IncidentStatus.DISPATCH_FAILED
         )
         const val DemoConfirmationWindowMillis = 3_000
+        /** Cuenta regresiva en demo: el minimo permitido, para no hacer esperar a la audiencia. */
+        const val DemoCountdownSeconds = 10
     }
 }
 

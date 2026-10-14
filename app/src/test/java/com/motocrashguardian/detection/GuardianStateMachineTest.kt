@@ -232,6 +232,96 @@ class GuardianStateMachineTest {
         assertEquals(first, (testMachine.state.value as GuardianState.Countdown).incident)
     }
 
+    // --- Modo demo temporal ---
+
+    @Test
+    fun `en demo la cuenta regresiva dura 10 s aunque los ajustes digan 20`() = runTest {
+        val settings = newSettingsRepository()
+        val testMachine = newMachine(settings, newIncidentRepository(), demoActive = { true })
+        testMachine.startTrip()
+
+        testMachine.startDrill()
+
+        val countdown = testMachine.state.value as GuardianState.Countdown
+        assertEquals(clock().instant().plusSeconds(10), countdown.deadline)
+        assertEquals(20, settings.value.value.countdownSeconds)
+    }
+
+    @Test
+    fun `en demo no se escribe nada en los ajustes guardados`() = runTest {
+        val settings = newSettingsRepository()
+        val testMachine = newMachine(settings, newIncidentRepository(), demoActive = { true })
+        testMachine.startTrip()
+        val afterTrip = settings.value.value
+
+        testMachine.startDrill()
+        testMachine.cancelCountdown()
+
+        assertEquals(afterTrip, settings.value.value)
+        assertEquals(false, settings.value.value.demoMode)
+        assertEquals(20, settings.value.value.countdownSeconds)
+    }
+
+    @Test
+    fun `sin demo activo se ignora el demoMode que hubiera guardado`() = runTest {
+        val settings = newSettingsRepository()
+        settings.value.value = AppSettings(demoMode = true)
+        val testMachine = newMachine(settings, newIncidentRepository(), demoActive = { false })
+        testMachine.startTrip()
+
+        testMachine.startDrill()
+
+        val countdown = testMachine.state.value as GuardianState.Countdown
+        assertEquals(clock().instant().plusSeconds(20), countdown.deadline)
+    }
+
+    @Test
+    fun `el demo se consulta en cada alerta y no queda fijado`() = runTest {
+        var demo = true
+        val testMachine = newMachine(newSettingsRepository(), newIncidentRepository(), { demo })
+        testMachine.startTrip()
+        testMachine.startDrill()
+        assertEquals(
+            clock().instant().plusSeconds(10),
+            (testMachine.state.value as GuardianState.Countdown).deadline
+        )
+        testMachine.cancelCountdown()
+
+        demo = false
+        testMachine.startDrill()
+
+        assertEquals(
+            clock().instant().plusSeconds(20),
+            (testMachine.state.value as GuardianState.Countdown).deadline
+        )
+    }
+
+    private suspend fun TestScope.confirmedImpactType(demo: Boolean): IncidentType {
+        val testMachine = newMachine(
+            newSettingsRepository(),
+            newIncidentRepository(),
+            demoActive = { demo }
+        )
+        testMachine.startTrip()
+        testMachine.onCandidate(event(DeviceEventType.IMPACT))
+        repeat(11) { index ->
+            advanceTimeBy(200)
+            runCurrent()
+            testMachine.onTelemetry(telemetry(index, 8_500))
+        }
+        return (testMachine.state.value as GuardianState.Countdown).incident.type
+    }
+
+    @Test
+    fun `en demo un impacto confirmado se trata como simulacro`() = runTest {
+        assertEquals(IncidentType.DRILL, confirmedImpactType(demo = true))
+    }
+
+    @Test
+    fun `sin demo un impacto confirmado es un incidente real`() = runTest {
+        assertEquals(IncidentType.REAL, confirmedImpactType(demo = false))
+    }
+
     @Test
     fun `restaurar cuenta calcula el deadline original y despacha si ya vencio`() = runTest {
         val repository = newIncidentRepository()
@@ -347,13 +437,15 @@ class GuardianStateMachineTest {
 
     private fun TestScope.newMachine(
         settings: TestSettingsRepository,
-        incidentRepository: IncidentRepository
+        incidentRepository: IncidentRepository,
+        demoActive: () -> Boolean = { false }
     ): GuardianStateMachine = GuardianStateMachine(
         incidentRepository = incidentRepository,
         settingsRepository = settings.repository,
         confirmationEngine = ConfirmationEngine(clock()),
         scope = backgroundScope,
-        clock = clock()
+        clock = clock(),
+        isDemoActive = demoActive
     ).also { machine = it }
 
     private fun TestScope.clock(): TestClock = TestClock(testScheduler)

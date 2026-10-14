@@ -4,6 +4,7 @@ import com.motocrashguardian.data.incidents.IncidentRepository
 import com.motocrashguardian.data.settings.SettingsRepository
 import com.motocrashguardian.detection.ConfirmationEngine
 import com.motocrashguardian.detection.GuardianStateMachine
+import com.motocrashguardian.emergency.DemoModeController
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -20,11 +21,13 @@ object GuardianStateMachineModule {
     @Singleton
     fun provideGuardianStateMachine(
         incidentRepository: IncidentRepository,
-        settingsRepository: SettingsRepository
+        settingsRepository: SettingsRepository,
+        demoMode: DemoModeController
     ): GuardianStateMachine = GuardianStateMachine(
         incidentRepository = incidentRepository,
         settingsRepository = settingsRepository,
         confirmationEngine = ConfirmationEngine(),
-        scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+        scope = CoroutineScope(SupervisorJob() + Dispatchers.Default),
+        isDemoActive = demoMode::isActive
     )
 }
