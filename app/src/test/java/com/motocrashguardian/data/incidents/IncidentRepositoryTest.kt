@@ -193,6 +193,18 @@ class IncidentRepositoryTest {
     }
 
     @Test
+    fun `no lista los eventos TEST porque el firmware no genera su traza`() = runTest {
+        val repository = newRepository()
+        val test = sampleIncident(Instant.parse("2026-10-06T01:00:00Z"), deviceEventKey = "57:1")
+            .copy(triggerType = TriggerType.TEST)
+        val real = sampleIncident(Instant.parse("2026-10-06T02:00:00Z"), deviceEventKey = "57:2")
+        assertTrue(repository.recordIncident(test))
+        assertTrue(repository.recordIncident(real))
+
+        assertEquals(listOf(real.id), repository.incidentsMissingTrace(10).map { it.id })
+    }
+
+    @Test
     fun `respeta el limite al listar incidentes sin traza`() = runTest {
         val repository = newRepository()
         repeat(4) {
