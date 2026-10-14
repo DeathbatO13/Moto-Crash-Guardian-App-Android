@@ -2,6 +2,7 @@ package com.motocrashguardian
 
 import android.app.Application
 import android.util.Log
+import com.motocrashguardian.ble.ModuleArmer
 import com.motocrashguardian.ble.TraceDownloadCoordinator
 import com.motocrashguardian.data.incidents.IncidentRepository
 import com.motocrashguardian.data.sync.SyncCoordinator
@@ -24,6 +25,7 @@ class GuardianApp : Application() {
     @Inject lateinit var syncScheduler: SyncScheduler
     @Inject lateinit var incidentRepository: IncidentRepository
     @Inject lateinit var traceDownloads: TraceDownloadCoordinator
+    @Inject lateinit var moduleArmer: ModuleArmer
 
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
@@ -36,6 +38,8 @@ class GuardianApp : Application() {
         syncScheduler.ensurePeriodic()
         // Cajas negras del modulo: se descargan solo sin alerta en curso (ver TraceDownloadCoordinator).
         traceDownloads.start(appScope)
+        // El modulo arranca desarmado: sin ARM no detecta caidas (ver ModuleArmer).
+        moduleArmer.start(appScope)
         appScope.launch { purgeExpiredTraces() }
         appScope.launch {
             try {
