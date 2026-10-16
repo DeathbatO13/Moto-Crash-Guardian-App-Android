@@ -26,7 +26,6 @@ import androidx.compose.material.icons.filled.AddAlert
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.ContactPhone
 import androidx.compose.material.icons.filled.Explore
-import androidx.compose.material.icons.filled.HealthAndSafety
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Science
 import androidx.compose.material.icons.filled.Sensors
@@ -52,6 +51,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.motocrashguardian.BuildConfig
+import com.motocrashguardian.ui.components.SafeRideLogo
 
 /**
  * S-01 Bienvenida (docs/06 §4; boceto Stitch AI adaptado al tema M3).
@@ -113,19 +113,8 @@ fun WelcomeScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         // 3. Título y subtítulo
-        Icon(
-            imageVector = Icons.Filled.HealthAndSafety,
-            contentDescription = null,
-            modifier = Modifier.size(36.dp),
-            tint = MaterialTheme.colorScheme.primary
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = "Moto Crash Guardian",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(modifier = Modifier.height(8.dp))
+        SafeRideLogo(height = 56.dp)
+        Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = "Sistema de telemetría y detección automática de caídas " +
                 "e impactos para motociclistas con sensor ESP32 y " +

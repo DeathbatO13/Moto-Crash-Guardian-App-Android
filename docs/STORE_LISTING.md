@@ -7,7 +7,7 @@ Textos listos para pegar en Play Console → Presencia en la tienda → Ficha pr
 ## Nombre de la app (max. 30)
 
 ```
-Moto Crash Guardian
+SafeRide
 ```
 
 ## Descripcion breve (max. 80)
@@ -19,7 +19,7 @@ Avisa a tus contactos si tu dispositivo detecta una caida en moto.
 ## Descripcion completa (max. 4000)
 
 ```
-Moto Crash Guardian acompana al dispositivo Moto Crash Guardian instalado en tu moto. Cuando el dispositivo detecta una posible caida, la app te muestra una cuenta regresiva para que puedas cancelar una falsa alarma. Si no respondes, envia un SMS con tu ubicacion a tus contactos de emergencia y llama a tu contacto principal.
+SafeRide acompana al dispositivo SafeRide instalado en tu moto. Cuando el dispositivo detecta una posible caida, la app te muestra una cuenta regresiva para que puedas cancelar una falsa alarma. Si no respondes, envia un SMS con tu ubicacion a tus contactos de emergencia y llama a tu contacto principal.
 
 COMO FUNCIONA
 • Conecta el dispositivo por Bluetooth y empieza un viaje.
@@ -34,11 +34,11 @@ TAMBIEN INCLUYE
 • Respaldo opcional de configuracion e incidentes.
 
 REQUISITOS
-• Dispositivo Moto Crash Guardian.
+• Dispositivo SafeRide.
 • Telefono Android 8.0 o superior con Bluetooth LE y plan de SMS/voz.
 
 AVISO IMPORTANTE
-Moto Crash Guardian es un prototipo academico. No es un sistema de emergencia certificado, no reemplaza a los servicios de emergencia y no garantiza detectar todos los accidentes ni entregar todas las alertas (depende de cobertura, bateria y permisos del telefono). En Colombia, ante una emergencia, comunicate con la linea 123.
+SafeRide es un prototipo academico. No es un sistema de emergencia certificado, no reemplaza a los servicios de emergencia y no garantiza detectar todos los accidentes ni entregar todas las alertas (depende de cobertura, bateria y permisos del telefono). En Colombia, ante una emergencia, comunicate con la linea 123.
 ```
 
 ## Categoria y contacto

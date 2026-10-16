@@ -1,4 +1,11 @@
 <resources>
     <!-- Tema de ventana; el tema visual lo define Compose (Material 3). -->
     <style name="Theme.MotoCrashGuardian" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <!-- Pantalla de carga: logo de SafeRide sobre fondo blanco. -->
+    <style name="Theme.MotoCrashGuardian.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_icon</item>
+        <item name="postSplashScreenTheme">@style/Theme.MotoCrashGuardian</item>
+    </style>
 </resources>

@@ -1,6 +1,6 @@
-# App Android — Moto Crash Guardian
+# App Android — SafeRide
 
-Aplicacion Android nativa para motociclistas. Se conecta por BLE al dispositivo Moto Crash Guardian, valida eventos candidatos, permite cancelar falsas alarmas y despacha SMS/llamada desde el telefono. La emergencia funciona localmente y no depende del backend ni de internet.
+Aplicacion Android nativa para motociclistas. Se conecta por BLE al dispositivo SafeRide, valida eventos candidatos, permite cancelar falsas alarmas y despacha SMS/llamada desde el telefono. La emergencia funciona localmente y no depende del backend ni de internet.
 
 > **Prototipo academico.** No es un sistema eCall certificado, no reemplaza a los servicios de emergencia y no garantiza detectar todos los accidentes ni enviar alertas. En Colombia, ante una emergencia, comunicate con la linea 123.
 

@@ -1,4 +1,4 @@
-# Distribucion por APK — Moto Crash Guardian
+# Distribucion por APK — SafeRide
 
 Para la sustentacion (lunes **19 de octubre de 2026**) la app se distribuye como **APK release firmado instalado directamente** en los telefonos de prueba. No se publica en Google Play; la guia de Play queda como referencia futura en [`PLAY_STORE.md`](PLAY_STORE.md).
 
@@ -62,7 +62,7 @@ adb install -r moto-crash-guardian-0.1.0.apk
 2. Permitir *Instalar apps desconocidas* para el navegador o gestor de archivos cuando Android lo pida.
 3. Si Play Protect muestra una advertencia por ser una app desconocida, elegir *Mas detalles → Instalar de todas formas*. Es esperado en APKs fuera de la tienda.
 
-Despues de instalar, conceder los permisos desde el asistente de la app. Verificar en *Ajustes → Apps → Moto Crash Guardian*:
+Despues de instalar, conceder los permisos desde el asistente de la app. Verificar en *Ajustes → Apps → SafeRide*:
 
 - Notificaciones activadas y, en Android 14+, *Intents de pantalla completa* permitidos (la app debe comprobarlo con `NotificationManager.canUseFullScreenIntent()`).
 - SMS, Telefono, Ubicacion y Dispositivos cercanos concedidos.

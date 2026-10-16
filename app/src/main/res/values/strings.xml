@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Moto Crash Guardian</string>
+    <string name="app_name">SafeRide</string>
     <string name="alert_notification_title">Posible accidente detectado</string>
     <string name="alert_notification_countdown">Se enviará una alerta en %1$d s. Toca para cancelar.</string>
     <string name="alert_notification_open">Abrir alerta</string>
@@ -32,7 +32,7 @@
     <string name="alert_dispatch_uses_location">Se intentará enviar la alerta con la ubicación disponible.</string>
 
     <!-- Servicio de conexión BLE -->
-    <string name="service_notification_title">Moto Crash Guardian</string>
+    <string name="service_notification_title">SafeRide</string>
     <string name="service_channel_name">Conexión del dispositivo</string>
     <string name="service_channel_description">Mantiene la conexión BLE con el módulo de la moto.</string>
     <string name="service_state_disconnected">Esperando dispositivo</string>
@@ -45,7 +45,7 @@
     <string name="pairing_title">Emparejar dispositivo</string>
     <string name="pairing_description">Busca el módulo instalado en tu moto. Asegúrate de que el interruptor esté encendido.</string>
     <string name="pairing_button_start">BUSCAR DISPOSITIVO</string>
-    <string name="pairing_searching">Buscando módulo Moto Crash Guardian…</string>
+    <string name="pairing_searching">Buscando módulo SafeRide…</string>
     <string name="pairing_step">PASO 4 DE 4 · CONEXIÓN</string>
     <string name="pairing_success_title">¡Vinculado correctamente!</string>
     <string name="pairing_success_description">El dispositivo ya está enlazado. Todo listo para tu primer viaje.</string>
