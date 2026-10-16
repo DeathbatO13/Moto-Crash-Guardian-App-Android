@@ -30,7 +30,8 @@ internal fun AppSettingsProto.toDomain(): AppSettings = AppSettings(
         null
     },
     configDirty = configDirty,
-    contactsDirty = contactsDirty
+    contactsDirty = contactsDirty,
+    darkTheme = darkTheme
 )
 
 internal fun AppSettings.toProto(): AppSettingsProto {
@@ -44,6 +45,7 @@ internal fun AppSettings.toProto(): AppSettingsProto {
         .setOnboardingCompleted(onboardingCompleted)
         .setConfigDirty(configDirty)
         .setContactsDirty(contactsDirty)
+        .setDarkTheme(darkTheme)
 
     primaryContact?.let { builder.primaryContact = it.toProto() }
     secondaryContact?.let { builder.secondaryContact = it.toProto() }
