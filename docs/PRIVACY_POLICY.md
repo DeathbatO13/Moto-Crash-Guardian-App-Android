@@ -1,4 +1,4 @@
-# Politica de privacidad — Moto Crash Guardian (BORRADOR)
+# Politica de privacidad — SafeRide (BORRADOR)
 
 > Borrador tecnico para revision del equipo y, si aplica, de un asesor legal. Completa los campos `<...>`, verifica cada punto contra la implementacion final y usalo como base del texto de consentimiento de la app. Para la sustentacion (APK sin Play) no es obligatorio publicarlo en una URL; si la app se publica en Play, debe estar en una URL publica y coincidir con *Seguridad de los datos*. Debe ser coherente con `../docs/08-security-privacy.md`.
 
@@ -7,7 +7,7 @@
 
 ## 1. Alcance
 
-Esta politica describe como la app Android Moto Crash Guardian y su servicio de respaldo tratan tus datos. Moto Crash Guardian es un prototipo academico y no es un servicio de emergencia certificado.
+Esta politica describe como la app Android SafeRide y su servicio de respaldo tratan tus datos. SafeRide es un prototipo academico y no es un servicio de emergencia certificado.
 
 ## 2. Datos que tratamos
 

@@ -61,7 +61,7 @@ import com.motocrashguardian.R
  * S-03 Asistente de permisos.
  * 
  * Se eliminó la petición de ubicación del teléfono ya que el sistema
- * usa el GPS del dispositivo físico Moto Crash Guardian.
+ * usa el GPS del dispositivo físico SafeRide.
  */
 @Composable
 fun PermissionsScreen(
@@ -150,7 +150,7 @@ fun PermissionsScreen(
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = "La app necesita estos permisos para gestionar la comunicación de emergencia. " +
-                "La ubicación se obtiene directamente de tu dispositivo Moto Crash Guardian.",
+                "La ubicación se obtiene directamente de tu dispositivo SafeRide.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

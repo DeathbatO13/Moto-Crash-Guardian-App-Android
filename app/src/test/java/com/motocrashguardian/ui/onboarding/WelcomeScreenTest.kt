@@ -5,6 +5,7 @@ import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.motocrashguardian.ui.theme.MotoCrashGuardianTheme
@@ -26,7 +27,7 @@ class WelcomeScreenTest {
     @Test
     fun muestraTituloYAdvertenciaDePrototipo() {
         composeRule.setContent { MotoCrashGuardianTheme { WelcomeScreen() } }
-        composeRule.onNodeWithText("Moto Crash Guardian").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("SafeRide").assertIsDisplayed()
         composeRule.onNodeWithText(
             "Este sistema es un prototipo de apoyo. No reemplaza a " +
                 "los servicios de emergencia ni garantiza la detección " +

@@ -75,5 +75,5 @@ jobs:
         run: >
           gh release create "$GITHUB_REF_NAME"
           "${{ steps.apk.outputs.file }}" "${{ steps.apk.outputs.file }}.sha256"
-          --title "Moto Crash Guardian $GITHUB_REF_NAME"
+          --title "SafeRide $GITHUB_REF_NAME"
           --notes "APK firmado para instalacion directa. Verificar SHA-256 antes de instalar."

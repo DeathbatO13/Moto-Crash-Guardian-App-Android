@@ -91,6 +91,6 @@ class HomeScreenTest {
         composeRule.setContent {
             MotoCrashGuardianTheme { HomeScreen(viewModel = viewModel) }
         }
-        composeRule.onNodeWithText("Moto Crash Guardian").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("SafeRide").assertIsDisplayed()
     }
 }

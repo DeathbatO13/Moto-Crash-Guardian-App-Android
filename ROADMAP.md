@@ -1,4 +1,4 @@
-# Roadmap Android — Moto Crash Guardian
+# Roadmap Android — SafeRide
 
 Este roadmap convierte `docs/` y `specs/features/` en trabajo ejecutable para `App Android/`. Las prioridades siguen el MVP: primero la ruta de emergencia local; la sincronizacion con el backend nunca debe bloquearla.
 

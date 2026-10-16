@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.motocrashguardian.ui.components.SafeRideLogo
 import com.motocrashguardian.ble.DeviceConnectionState
 import com.motocrashguardian.core.model.AppSettings
 import com.motocrashguardian.core.model.Telemetry
@@ -51,20 +52,8 @@ fun HomeScreen(
             TopAppBar(
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.TwoWheeler,
-                            contentDescription = null,
-                            tint = PrimaryBlue,
-                            modifier = Modifier.size(24.dp)
-                        )
+                        SafeRideLogo(height = 24.dp)
                         Spacer(Modifier.width(8.dp))
-                        Text(
-                            text = "Moto Crash Guardian",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            maxLines = 1
-                        )
-                        Spacer(Modifier.width(4.dp))
                         Surface(
                             color = PrimaryBlue.copy(alpha = 0.2f),
                             shape = RoundedCornerShape(4.dp)

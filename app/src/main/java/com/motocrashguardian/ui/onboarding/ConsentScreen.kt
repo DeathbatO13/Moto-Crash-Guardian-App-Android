@@ -125,7 +125,7 @@ fun ConsentScreen(
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "Moto Crash Guardian procesa tu telemetría en el " +
+            text = "SafeRide procesa tu telemetría en el " +
                 "dispositivo y el ESP32. Tus incidentes y ajustes se " +
                 "sincronizan con nuestro servidor (Render, EE. UU.) " +
                 "para tu historial.",
@@ -268,7 +268,7 @@ fun ConsentScreen(
                     Text(
                         text = "Autorizo el tratamiento de mis datos " +
                             "únicamente para las funciones de protección " +
-                            "y auxilio vial de Moto Crash Guardian.",
+                            "y auxilio vial de SafeRide.",
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.weight(1f)
                     )

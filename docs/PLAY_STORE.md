@@ -1,4 +1,4 @@
-# Publicacion en Google Play — Moto Crash Guardian
+# Publicacion en Google Play — SafeRide
 
 > **Fuera del alcance de la sustentacion (19-oct-2026).** Para la entrega se distribuye el APK firmado directamente: ver [`DISTRIBUCION_APK.md`](DISTRIBUCION_APK.md). Este documento queda como referencia si el proyecto se publica despues. Diferencias con la configuracion actual del repo:
 >
@@ -61,7 +61,7 @@ Si `keystore.properties` no existe, `bundleRelease` produce un bundle sin firmar
 
 ## 5. Crear la app en Play Console
 
-1. **Crear app**: nombre "Moto Crash Guardian", idioma predeterminado espanol (Latinoamerica, `es-419`), tipo *App*, *Gratis*.
+1. **Crear app**: nombre "SafeRide", idioma predeterminado espanol (Latinoamerica, `es-419`), tipo *App*, *Gratis*.
 2. **Primera version (manual)**: Pruebas → Prueba interna → Crear version → subir el `.aab`. La API de Play no puede crear la app ni la primera version, por eso esta subida es manual; las siguientes las hace CI.
 3. Completa **Contenido de la app** (seccion 7) y la **Ficha de Play Store** (borrador en [`STORE_LISTING.md`](STORE_LISTING.md)).
 
@@ -119,7 +119,7 @@ Declara cada tipo en *Contenido de la app → Permisos de servicio en primer pla
 
 | Tipo | Justificacion |
 |---|---|
-| `connectedDevice` | Mantener el enlace BLE con el dispositivo Moto Crash Guardian durante el viaje. |
+| `connectedDevice` | Mantener el enlace BLE con el dispositivo SafeRide durante el viaje. |
 | `location` | Obtener la ubicacion al iniciar la cuenta regresiva para incluirla en el SMS. |
 
 Asegurate de declarar el `<service android:foregroundServiceType="connectedDevice|location">` cuando se implemente `GuardianService`.

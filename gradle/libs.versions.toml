@@ -26,6 +26,7 @@ espressoCore = "3.7.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version = "1.0.1" }
 junit4 = { group = "junit", name = "junit", version.ref = "junit4" }
 junit5-bom = { group = "org.junit", name = "junit-bom", version.ref = "junit5" }
 junit5-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter" }
