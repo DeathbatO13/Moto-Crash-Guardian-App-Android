@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import com.motocrashguardian.ui.theme.appColors
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -20,8 +21,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import java.util.Locale
 
-private val ThresholdColor = Color(0xFFFFB300)
-private val SaturationColor = Color(0xFFFF5252)
 
 /**
  * Aceleracion alrededor del disparo (de -3 a +3 s): linea de magnitud, instante del disparo,
@@ -38,6 +37,8 @@ fun TraceChart(
     val lineColor = MaterialTheme.colorScheme.primary
     val triggerColor = MaterialTheme.colorScheme.error
     val gridColor = MaterialTheme.colorScheme.outlineVariant
+    val thresholdColor = MaterialTheme.appColors.chartThreshold
+    val saturationColor = MaterialTheme.appColors.chartSaturation
     val description = chartDescription(windowed, impactThresholdG)
 
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -59,7 +60,7 @@ fun TraceChart(
             // Umbral de impacto.
             val thresholdY = thresholdY(impactThresholdG, maxG, height)
             drawLine(
-                color = ThresholdColor,
+                color = thresholdColor,
                 start = Offset(0f, thresholdY),
                 end = Offset(width, thresholdY),
                 strokeWidth = 2f,
@@ -87,7 +88,7 @@ fun TraceChart(
                 drawPath(path, lineColor, style = Stroke(width = 4f))
             }
             windowed.points.zip(offsets).filter { it.first.saturated }.forEach { (_, point) ->
-                drawCircle(SaturationColor, radius = 7f, center = point)
+                drawCircle(saturationColor, radius = 7f, center = point)
             }
         }
 
@@ -116,10 +117,10 @@ private fun Legend(trace: DecodedTrace, impactThresholdG: Float) {
             MaterialTheme.colorScheme.primary,
             "Aceleración (pico ${formatG(trace.peakAccelG)})"
         )
-        LegendLine(ThresholdColor, "Umbral de impacto actual (${formatG(impactThresholdG)})")
+        LegendLine(MaterialTheme.appColors.chartThreshold, "Umbral de impacto actual (${formatG(impactThresholdG)})")
         if (trace.saturatedCount > 0) {
             LegendLine(
-                SaturationColor,
+                MaterialTheme.appColors.chartSaturation,
                 "Sensor saturado en ${trace.saturatedCount} muestra(s): el pico real pudo ser mayor"
             )
         }

@@ -75,7 +75,8 @@ class SettingsRepositoryTest {
             onboardingCompleted = true,
             consentAcceptedAt = Instant.parse("2026-10-05T23:00:00.123Z"),
             configDirty = true,
-            contactsDirty = true
+            contactsDirty = true,
+            darkTheme = true
         )
 
         repository.replaceSettings(settings)

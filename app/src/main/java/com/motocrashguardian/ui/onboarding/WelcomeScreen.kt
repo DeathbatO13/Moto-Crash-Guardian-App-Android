@@ -52,6 +52,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.motocrashguardian.BuildConfig
 import com.motocrashguardian.ui.components.SafeRideLogo
+import com.motocrashguardian.ui.theme.ThemeToggleButton
 
 /**
  * S-01 Bienvenida (docs/06 §4; boceto Stitch AI adaptado al tema M3).
@@ -98,11 +99,14 @@ fun WelcomeScreen(
                     )
                 }
             )
-            Text(
-                text = "v${BuildConfig.VERSION_NAME}",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "v${BuildConfig.VERSION_NAME}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                ThemeToggleButton()
+            }
         }
 
         Spacer(modifier = Modifier.height(24.dp))

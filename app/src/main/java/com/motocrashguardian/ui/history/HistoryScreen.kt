@@ -44,6 +44,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.motocrashguardian.core.model.Incident
 import com.motocrashguardian.core.model.IncidentStatus
 import com.motocrashguardian.core.model.IncidentType
+import com.motocrashguardian.ui.theme.appColors
 import java.util.UUID
 
 @Composable
@@ -210,12 +211,12 @@ private fun IncidentRow(incident: Incident, onClick: () -> Unit) {
 
 @Composable
 internal fun DrillTag() {
-    Surface(color = Color(0xFF553800), shape = RoundedCornerShape(4.dp)) {
+    Surface(color = MaterialTheme.appColors.warningContainer, shape = RoundedCornerShape(4.dp)) {
         Text(
             "SIMULACRO",
             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
             style = MaterialTheme.typography.labelSmall,
-            color = Color(0xFFFFDDB8),
+            color = MaterialTheme.appColors.onWarningContainer,
             fontWeight = FontWeight.Bold
         )
     }
@@ -224,8 +225,8 @@ internal fun DrillTag() {
 /** Icono y color por estado: verde si el aviso salio, rojo si fallo, gris si no hizo falta. */
 @Composable
 internal fun statusVisual(status: IncidentStatus): Pair<ImageVector, Color> = when (status) {
-    IncidentStatus.DISPATCHED -> Icons.Default.CheckCircle to Color(0xFF4CAF50)
-    IncidentStatus.DISPATCH_PARTIAL -> Icons.Default.Warning to Color(0xFFFFB300)
+    IncidentStatus.DISPATCHED -> Icons.Default.CheckCircle to MaterialTheme.appColors.success
+    IncidentStatus.DISPATCH_PARTIAL -> Icons.Default.Warning to MaterialTheme.appColors.warning
     IncidentStatus.DISPATCH_FAILED -> Icons.Default.Error to MaterialTheme.colorScheme.error
     IncidentStatus.ACTIVE -> Icons.Default.HourglassTop to MaterialTheme.colorScheme.primary
     IncidentStatus.CANCELLED_BY_USER,

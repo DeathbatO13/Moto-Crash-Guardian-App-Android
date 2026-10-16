@@ -94,7 +94,9 @@ data class AppSettings(
     val onboardingCompleted: Boolean = false,
     val consentAcceptedAt: Instant? = null,
     val configDirty: Boolean = false,
-    val contactsDirty: Boolean = false
+    val contactsDirty: Boolean = false,
+    /** Tema visual elegido; claro por defecto. */
+    val darkTheme: Boolean = false
 ) {
     init {
         require(countdownSeconds in 10..60)

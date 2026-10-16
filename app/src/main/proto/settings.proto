@@ -22,6 +22,7 @@ message AppSettingsProto {
   int64 consent_accepted_at_epoch_millis = 13;
   bool config_dirty = 14;
   bool contacts_dirty = 15;
+  bool dark_theme = 16;
 }
 
 message EmergencyContactProto {

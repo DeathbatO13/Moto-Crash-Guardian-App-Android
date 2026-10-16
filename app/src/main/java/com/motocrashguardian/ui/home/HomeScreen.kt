@@ -21,14 +21,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.motocrashguardian.ui.components.SafeRideLogo
+import com.motocrashguardian.ui.theme.ThemeToggleButton
+import com.motocrashguardian.ui.theme.appColors
 import com.motocrashguardian.ble.DeviceConnectionState
 import com.motocrashguardian.core.model.AppSettings
 import com.motocrashguardian.core.model.Telemetry
-import com.motocrashguardian.ui.theme.AlertRed
-import com.motocrashguardian.ui.theme.DarkSurface
-import com.motocrashguardian.ui.theme.DarkSurfaceVariant
-import com.motocrashguardian.ui.theme.PrimaryBlue
-import com.motocrashguardian.ui.theme.SecondaryBlue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,20 +52,21 @@ fun HomeScreen(
                         SafeRideLogo(height = 24.dp)
                         Spacer(Modifier.width(8.dp))
                         Surface(
-                            color = PrimaryBlue.copy(alpha = 0.2f),
+                            color = MaterialTheme.colorScheme.primaryContainer,
                             shape = RoundedCornerShape(4.dp)
                         ) {
                             Text(
                                 text = "DTPE",
                                 modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
                                 fontSize = 10.sp,
-                                color = PrimaryBlue,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
                                 fontWeight = FontWeight.Bold
                             )
                         }
                     }
                 },
                 actions = {
+                    ThemeToggleButton()
                     IconButton(onClick = onOpenHistory) {
                         Icon(
                             imageVector = Icons.Default.History,
@@ -137,7 +135,7 @@ fun HomeScreen(
                         icon = Icons.Default.CheckCircle,
                         message = "Contactos guardados",
                         subMessage = "Sincronizados con el dispositivo",
-                        color = Color(0xFF2E7D32)
+                        color = MaterialTheme.appColors.successSolid
                     )
 
                     Column {
@@ -146,13 +144,13 @@ fun HomeScreen(
                                 imageVector = Icons.Default.Security,
                                 contentDescription = null,
                                 modifier = Modifier.size(14.dp),
-                                tint = PrimaryBlue
+                                tint = MaterialTheme.colorScheme.primary
                             )
                             Spacer(Modifier.width(6.dp))
                             Text(
                                 text = "PROTOCOLO DE ASISTENCIA CO",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = PrimaryBlue,
+                                color = MaterialTheme.colorScheme.primary,
                                 letterSpacing = 1.sp
                             )
                         }
@@ -183,7 +181,10 @@ fun HomeScreen(
                     Button(
                         onClick = { },
                         modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = DarkSurfaceVariant),
+                        colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                contentColor = MaterialTheme.colorScheme.onSurface
+            ),
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Icon(imageVector = Icons.Default.ContactPage, contentDescription = null)
@@ -242,7 +243,8 @@ fun HomeScreen(
 @Composable
 private fun StatusBanner(icon: ImageVector, message: String, subMessage: String, color: Color) {
     Surface(
-        color = color.copy(alpha = 0.15f),
+        color = MaterialTheme.appColors.successContainer,
+        contentColor = MaterialTheme.appColors.onSuccessContainer,
         shape = RoundedCornerShape(12.dp),
         border = BorderStroke(1.dp, color.copy(alpha = 0.5f)),
         modifier = Modifier.fillMaxWidth()
@@ -261,7 +263,7 @@ private fun StatusBanner(icon: ImageVector, message: String, subMessage: String,
             Spacer(Modifier.width(12.dp))
             Column {
                 Text(text = message, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
-                Text(text = subMessage, style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.7f))
+                Text(text = subMessage, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Spacer(Modifier.weight(1f))
             IconButton(onClick = { }) {
@@ -274,21 +276,21 @@ private fun StatusBanner(icon: ImageVector, message: String, subMessage: String,
 @Composable
 private fun ContactCard(name: String, phone: String, isPrimary: Boolean) {
     Surface(
-        color = DarkSurface,
+        color = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Surface(
-                    color = PrimaryBlue,
+                    color = MaterialTheme.colorScheme.primary,
                     shape = RoundedCornerShape(8.dp),
                     modifier = Modifier.size(40.dp)
                 ) {
                     Icon(
                         imageVector = if (isPrimary) Icons.Default.Place else Icons.Default.Person,
                         contentDescription = null,
-                        tint = Color.White,
+                        tint = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.padding(8.dp)
                     )
                 }
@@ -300,7 +302,7 @@ private fun ContactCard(name: String, phone: String, isPrimary: Boolean) {
                             Icon(
                                 imageVector = Icons.Default.CheckCircle,
                                 contentDescription = null,
-                                tint = PrimaryBlue,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(14.dp).padding(start = 4.dp)
                             )
                         }
@@ -308,7 +310,7 @@ private fun ContactCard(name: String, phone: String, isPrimary: Boolean) {
                     Text(text = phone, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Surface(
-                    color = if (isPrimary) AlertRed else DarkSurfaceVariant,
+                    color = if (isPrimary) MaterialTheme.appColors.dangerSolid else MaterialTheme.colorScheme.surfaceVariant,
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Row(
@@ -318,14 +320,14 @@ private fun ContactCard(name: String, phone: String, isPrimary: Boolean) {
                         Icon(
                             imageVector = if (isPrimary) Icons.Default.SmsFailed else Icons.Default.Sms,
                             contentDescription = null,
-                            tint = Color.White,
+                            tint = if (isPrimary) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(12.dp)
                         )
                         Text(
                             text = if (isPrimary) " SMS + LLAMADA" else " SMS",
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color.White
+                            color = if (isPrimary) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -333,11 +335,11 @@ private fun ContactCard(name: String, phone: String, isPrimary: Boolean) {
             if (isPrimary) {
                 Spacer(Modifier.height(12.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(imageVector = Icons.Default.PriorityHigh, contentDescription = null, tint = Color(0xFF6BFF8F), modifier = Modifier.size(12.dp))
+                    Icon(imageVector = Icons.Default.PriorityHigh, contentDescription = null, tint = MaterialTheme.appColors.success, modifier = Modifier.size(12.dp))
                     Text(
                         text = " Prioridad Alta - Primer Receptor SOS",
                         fontSize = 11.sp,
-                        color = Color(0xFF6BFF8F),
+                        color = MaterialTheme.appColors.success,
                         fontWeight = FontWeight.SemiBold
                     )
                     Spacer(Modifier.weight(1f))
@@ -364,17 +366,17 @@ private fun EditInfoForm(settings: com.motocrashguardian.core.model.AppSettings,
         EditField(label = "TELÉFONO 2", value = sPhone, onValueChange = { sPhone = it }, icon = Icons.Default.Dialpad)
 
         Surface(
-            color = Color(0xFF553800).copy(alpha = 0.2f),
+            color = MaterialTheme.appColors.warningContainer,
             shape = RoundedCornerShape(8.dp),
-            border = BorderStroke(1.dp, Color(0xFF553800))
+            border = BorderStroke(1.dp, MaterialTheme.appColors.warning.copy(alpha = 0.6f))
         ) {
             Row(Modifier.padding(12.dp), verticalAlignment = Alignment.Top) {
-                Icon(imageVector = Icons.Default.Info, contentDescription = null, tint = Color(0xFFFFDDB8), modifier = Modifier.size(16.dp))
+                Icon(imageVector = Icons.Default.Info, contentDescription = null, tint = MaterialTheme.appColors.onWarningContainer, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(8.dp))
                 Text(
                     text = "Usa código de país (+57).",
                     fontSize = 11.sp,
-                    color = Color(0xFFFFDDB8)
+                    color = MaterialTheme.appColors.onWarningContainer
                 )
             }
         }
@@ -383,7 +385,7 @@ private fun EditInfoForm(settings: com.motocrashguardian.core.model.AppSettings,
             onClick = { onSave(name, pName, pPhone, sName, sPhone) },
             modifier = Modifier.fillMaxWidth().height(56.dp),
             shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = SecondaryBlue)
+            
         ) {
             Icon(imageVector = Icons.Default.Save, contentDescription = null)
             Spacer(Modifier.width(8.dp))
@@ -404,10 +406,10 @@ private fun EditField(label: String, value: String, onValueChange: (String) -> U
             shape = RoundedCornerShape(12.dp),
             trailingIcon = { Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(20.dp)) },
             colors = OutlinedTextFieldDefaults.colors(
-                unfocusedContainerColor = DarkSurface,
-                focusedContainerColor = DarkSurface,
-                unfocusedBorderColor = Color.Transparent,
-                focusedBorderColor = PrimaryBlue
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                focusedBorderColor = MaterialTheme.colorScheme.primary
             )
         )
     }
@@ -425,7 +427,7 @@ fun DrillSection(
     val contacts = listOfNotNull(settings.primaryContact, settings.secondaryContact)
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(imageVector = Icons.Default.Construction, contentDescription = null, tint = Color(0xFFFFB4AB), modifier = Modifier.size(14.dp))
+            Icon(imageVector = Icons.Default.Construction, contentDescription = null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(14.dp))
             Spacer(Modifier.width(6.dp))
             Text(text = "Simulacro de alerta", fontWeight = FontWeight.Bold)
         }
@@ -450,7 +452,10 @@ fun DrillSection(
             onClick = onStartDrill,
             enabled = drill == DrillUiState.Idle,
             modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(containerColor = DarkSurfaceVariant),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                contentColor = MaterialTheme.colorScheme.onSurface
+            ),
             shape = RoundedCornerShape(12.dp)
         ) {
             Icon(imageVector = Icons.AutoMirrored.Filled.Send, contentDescription = null)
@@ -460,12 +465,12 @@ fun DrillSection(
         DrillDialogs(drill, contacts.size, settings, onConfirmDrill, onDismissDrill)
 
         Surface(
-            color = DarkSurface,
+            color = MaterialTheme.colorScheme.surface,
             shape = RoundedCornerShape(12.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
             Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                Icon(imageVector = Icons.Default.Sensors, contentDescription = null, tint = PrimaryBlue, modifier = Modifier.size(20.dp))
+                Icon(imageVector = Icons.Default.Sensors, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                 Spacer(Modifier.width(12.dp))
                 Column {
                     Text(text = "ESTADO DEL HARDWARE", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -532,7 +537,7 @@ private fun DrillDialogs(
 @Composable
 private fun ProtectionToggle(isActive: Boolean, onToggle: () -> Unit) {
     Surface(
-        color = if (isActive) Color(0xFF1B5E20).copy(alpha = 0.2f) else DarkSurface,
+        color = if (isActive) MaterialTheme.appColors.successContainer else MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -542,7 +547,7 @@ private fun ProtectionToggle(isActive: Boolean, onToggle: () -> Unit) {
             Icon(
                 imageVector = if (isActive) Icons.Default.Shield else Icons.Default.ShieldMoon,
                 contentDescription = null,
-                tint = if (isActive) Color(0xFF6BFF8F) else MaterialTheme.colorScheme.onSurfaceVariant
+                tint = if (isActive) MaterialTheme.appColors.success else MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
@@ -564,7 +569,7 @@ private fun ProtectionToggle(isActive: Boolean, onToggle: () -> Unit) {
 @Composable
 private fun TelemetryCard(telemetry: Telemetry?) {
     Surface(
-        color = DarkSurface,
+        color = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -582,7 +587,7 @@ private fun TelemetryCard(telemetry: Telemetry?) {
 @Composable
 private fun TelemetryItem(icon: ImageVector, label: String, value: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Icon(imageVector = icon, contentDescription = null, tint = PrimaryBlue, modifier = Modifier.size(20.dp))
+        Icon(imageVector = icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
         Text(text = label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text(text = value, fontWeight = FontWeight.Bold, fontSize = 16.sp)
     }

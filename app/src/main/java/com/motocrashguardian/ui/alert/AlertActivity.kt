@@ -28,7 +28,7 @@ class AlertActivity : ComponentActivity() {
         showOverLockScreen()
         enableEdgeToEdge()
         setContent {
-            MotoCrashGuardianTheme {
+            MotoCrashGuardianTheme(darkTheme = true) { // la alerta siempre es oscura: maximo contraste y menos brillo
                 val state by viewModel.uiState.collectAsStateWithLifecycle()
                 LaunchedEffect(state) {
                     if (state is AlertUiState.Hidden) finish()
