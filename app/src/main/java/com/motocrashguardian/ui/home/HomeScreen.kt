@@ -24,6 +24,7 @@ import com.motocrashguardian.ui.components.SafeRideLogo
 import com.motocrashguardian.ui.theme.ThemeToggleButton
 import com.motocrashguardian.ui.theme.appColors
 import com.motocrashguardian.ble.DeviceConnectionState
+import com.motocrashguardian.detection.GuardianState
 import com.motocrashguardian.core.model.AppSettings
 import com.motocrashguardian.core.model.Telemetry
 
@@ -33,11 +34,14 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     onOpenHistory: () -> Unit = {},
     onOpenPrivacy: () -> Unit = {},
+    onNavigateToPairing: () -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val connectionState by viewModel.connectionState.collectAsState()
     val telemetry by viewModel.telemetry.collectAsState()
     val settings by viewModel.settings.collectAsState()
+    val guardianState by viewModel.guardianState.collectAsState()
+    val tareStatus by viewModel.tareStatus.collectAsState()
     val drill by viewModel.drill.collectAsState()
     val demo by viewModel.demo.collectAsState()
     val demoConfirmation by viewModel.demoConfirmation.collectAsState()
@@ -106,7 +110,7 @@ fun HomeScreen(
                     selected = selectedTab == 2,
                     onClick = { selectedTab = 2 },
                     icon = { Icon(imageVector = Icons.Default.Tune, contentDescription = null) },
-                    label = { Text("Calibración") }
+                    label = { Text("Configuración") }
                 )
             }
         }
@@ -217,7 +221,8 @@ fun HomeScreen(
                 0 -> {
                     // Pestaña Inicio
                     ProtectionToggle(
-                        isActive = connectionState == DeviceConnectionState.READY,
+                        isActive = guardianState != GuardianState.Idle,
+                        connected = connectionState == DeviceConnectionState.READY,
                         onToggle = { viewModel.toggleProtection() }
                     )
                     DemoModeCard(
@@ -227,10 +232,13 @@ fun HomeScreen(
                     TelemetryCard(telemetry)
                 }
                 2 -> {
-                    // Pestaña Calibración
+                    // Pestaña Configuración: dispositivo vinculado y calibración
                     CalibrationSection(
                         connectionState = connectionState,
-                        onTare = { viewModel.tare() }
+                        pairedAddress = settings.pairedDeviceAddress,
+                        tareStatus = tareStatus,
+                        onTare = { viewModel.tare() },
+                        onNavigateToPairing = onNavigateToPairing
                     )
                 }
             }
@@ -535,7 +543,7 @@ private fun DrillDialogs(
 }
 
 @Composable
-private fun ProtectionToggle(isActive: Boolean, onToggle: () -> Unit) {
+private fun ProtectionToggle(isActive: Boolean, connected: Boolean, onToggle: () -> Unit) {
     Surface(
         color = if (isActive) MaterialTheme.appColors.successContainer else MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(16.dp),
@@ -556,7 +564,11 @@ private fun ProtectionToggle(isActive: Boolean, onToggle: () -> Unit) {
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = if (isActive) "Monitoreando telemetría..." else "Presiona para iniciar viaje",
+                    text = when {
+                        !isActive -> "Presiona para iniciar viaje"
+                        connected -> "Monitoreando telemetría..."
+                        else -> "Conectando con el módulo…"
+                    },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -594,8 +606,53 @@ private fun TelemetryItem(icon: ImageVector, label: String, value: String) {
 }
 
 @Composable
-private fun CalibrationSection(connectionState: DeviceConnectionState, onTare: () -> Unit) {
+private fun CalibrationSection(
+    connectionState: DeviceConnectionState,
+    pairedAddress: String?,
+    tareStatus: TareStatus,
+    onTare: () -> Unit,
+    onNavigateToPairing: () -> Unit
+) {
+    val connected = connectionState == DeviceConnectionState.READY
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Text(text = "Dispositivo", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceContainer,
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = if (connected) Icons.Default.BluetoothConnected else Icons.Default.BluetoothDisabled,
+                    contentDescription = null,
+                    tint = if (connected) MaterialTheme.appColors.success else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        text = if (connected) "Dispositivo vinculado" else "Sin conexión",
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = pairedAddress ?: "Ningún dispositivo configurado",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Button(
+                    onClick = onNavigateToPairing,
+                    shape = RoundedCornerShape(8.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        contentColor = MaterialTheme.colorScheme.onSurface
+                    )
+                ) {
+                    Text(text = if (pairedAddress == null) "Vincular" else "Cambiar", fontSize = 12.sp)
+                }
+            }
+        }
+
         Text(text = "Calibración", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
         Text(
             text = "Asegúrate de que la moto esté nivelada antes de calibrar.",
@@ -605,12 +662,29 @@ private fun CalibrationSection(connectionState: DeviceConnectionState, onTare: (
         Button(
             onClick = onTare,
             modifier = Modifier.fillMaxWidth().height(56.dp),
-            enabled = connectionState == DeviceConnectionState.READY,
+            enabled = connected && tareStatus != TareStatus.WORKING,
             shape = RoundedCornerShape(12.dp)
         ) {
             Icon(imageVector = Icons.Default.Straighten, contentDescription = null)
             Spacer(Modifier.width(8.dp))
-            Text(text = "FIJAR NIVEL NEUTRO (TARE)")
+            Text(text = if (tareStatus == TareStatus.WORKING) "CALIBRANDO…" else "FIJAR NIVEL NEUTRO (TARE)")
+        }
+        val tareMessage = when (tareStatus) {
+            TareStatus.DONE -> "Nivel neutro fijado: la posición actual ahora es 0°."
+            TareStatus.NOT_STILL -> "El módulo se movió. Déjalo quieto 1 segundo y vuelve a intentarlo."
+            TareStatus.FAILED -> "El módulo no respondió. Revisa la conexión y vuelve a intentarlo."
+            TareStatus.IDLE, TareStatus.WORKING -> null
+        }
+        if (tareMessage != null) {
+            Text(
+                text = tareMessage,
+                style = MaterialTheme.typography.bodyMedium,
+                color = if (tareStatus == TareStatus.DONE) {
+                    MaterialTheme.appColors.success
+                } else {
+                    MaterialTheme.colorScheme.error
+                }
+            )
         }
     }
 }

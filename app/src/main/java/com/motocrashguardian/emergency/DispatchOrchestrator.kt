@@ -29,7 +29,8 @@ class DispatchOrchestrator(
     private val messageBuilder: GsmMessageBuilder,
     private val loadSettings: suspend () -> AppSettings,
     private val saveIncident: suspend (Incident) -> Boolean,
-    private val clock: Clock = Clock.systemDefaultZone()
+    private val clock: Clock = Clock.systemDefaultZone(),
+    private val phoneNormalizer: PhoneNumberNormalizer = PhoneNumberNormalizer()
 ) {
     suspend fun dispatch(incident: Incident): DispatchOutcome {
         val settings = loadSettings()
@@ -73,7 +74,8 @@ class DispatchOrchestrator(
 
     private suspend fun sendSms(contact: EmergencyContact, message: String): SmsDispatchResult =
         try {
-            smsDispatcher.send(contact.phoneE164, message)
+            // Contactos guardados sin +57 (formato local) también deben recibir la alerta.
+            smsDispatcher.send(phoneNormalizer.toE164OrRaw(contact.phoneE164), message)
         } catch (_: IllegalArgumentException) {
             SmsDispatchResult(
                 status = SmsStatus.FAILED,
@@ -88,7 +90,7 @@ class DispatchOrchestrator(
         drillPlaceCall: Boolean
     ): CallDispatchResult =
         try {
-            callDispatcher.placeCall(contact.phoneE164, drill, drillPlaceCall)
+            callDispatcher.placeCall(phoneNormalizer.toE164OrRaw(contact.phoneE164), drill, drillPlaceCall)
         } catch (_: IllegalArgumentException) {
             CallDispatchResult(CallStatus.FAILED, DispatchFailure.INVALID_DESTINATION)
         }

@@ -50,7 +50,7 @@ private const val TAG = "DeviceRepository"
 @Singleton
 class DeviceRepositoryImpl(
     private val manager: GuardianBleManager,
-    @Named("ble") private val scope: CoroutineScope
+    @param:Named("ble") private val scope: CoroutineScope
 ) : DeviceRepository {
 
     // --- Estado ---

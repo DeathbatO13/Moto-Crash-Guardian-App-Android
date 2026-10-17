@@ -6,6 +6,8 @@ import com.motocrashguardian.core.model.AppSettings
 import com.motocrashguardian.core.model.ContactRole
 import com.motocrashguardian.core.model.EmergencyContact
 import com.motocrashguardian.data.settings.SettingsRepository
+import com.motocrashguardian.emergency.PhoneNumberNormalizer
+import com.motocrashguardian.emergency.toE164OrRaw
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.Instant
 import javax.inject.Inject
@@ -19,6 +21,7 @@ import kotlinx.coroutines.launch
 class OnboardingViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository
 ) : ViewModel() {
+    private val phoneNormalizer = PhoneNumberNormalizer()
 
     val settings: StateFlow<AppSettings> = settingsRepository.settings
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AppSettings())
@@ -46,9 +49,18 @@ class OnboardingViewModel @Inject constructor(
             settingsRepository.updateSettings { current ->
                 current.copy(
                     riderName = name,
-                    primaryContact = EmergencyContact(ContactRole.PRIMARY, primaryName, primaryPhone),
+                    // Se guarda en E.164 (+57…): lo exigen el despacho y el backend.
+                    primaryContact = EmergencyContact(
+                        ContactRole.PRIMARY,
+                        primaryName,
+                        phoneNormalizer.toE164OrRaw(primaryPhone)
+                    ),
                     secondaryContact = if (secondaryName.isNotBlank() && secondaryPhone.isNotBlank()) {
-                        EmergencyContact(ContactRole.SECONDARY, secondaryName, secondaryPhone)
+                        EmergencyContact(
+                            ContactRole.SECONDARY,
+                            secondaryName,
+                            phoneNormalizer.toE164OrRaw(secondaryPhone)
+                        )
                     } else {
                         current.secondaryContact
                     }

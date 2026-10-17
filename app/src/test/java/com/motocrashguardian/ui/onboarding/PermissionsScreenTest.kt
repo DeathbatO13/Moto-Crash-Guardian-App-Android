@@ -36,7 +36,7 @@ class PermissionsScreenTest {
         }
         composeRule.onNodeWithText("Permisos del sistema")
             .assertIsDisplayed()
-        composeRule.onNodeWithText("PASO 3 DE 4 · PERMISOS")
+        composeRule.onNodeWithText("PASO 4 DE 5 · PERMISOS")
             .assertIsDisplayed()
         composeRule.onNodeWithText("Notificaciones").assertIsDisplayed()
         composeRule.onNodeWithText("Dispositivos cercanos")
@@ -80,8 +80,6 @@ class PermissionsScreenTest {
                 Manifest.permission.POST_NOTIFICATIONS to true,
                 Manifest.permission.BLUETOOTH_SCAN to true,
                 Manifest.permission.BLUETOOTH_CONNECT to true,
-                Manifest.permission.ACCESS_FINE_LOCATION to true,
-                Manifest.permission.ACCESS_COARSE_LOCATION to true,
                 Manifest.permission.SEND_SMS to true,
                 Manifest.permission.CALL_PHONE to true
             )

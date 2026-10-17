@@ -11,11 +11,11 @@ import com.motocrashguardian.emergency.DispatchOrchestrator
 import com.motocrashguardian.emergency.EmergencyFlowController
 import com.motocrashguardian.emergency.GsmMessageBuilder
 import com.motocrashguardian.emergency.LocationAcquirer
+import com.motocrashguardian.emergency.ModuleGpsLocationSource
+import com.motocrashguardian.emergency.PhoneLocationSource
+import com.motocrashguardian.ble.DeviceRepository
 import com.motocrashguardian.emergency.platform.AndroidAlarmOutput
-import com.motocrashguardian.emergency.platform.FusedLastKnownLocationSource
-import com.motocrashguardian.emergency.platform.FusedPhoneLocationSource
 import com.motocrashguardian.emergency.platform.GuardianAlertNotifications
-import com.motocrashguardian.emergency.platform.NoDeviceGpsSource
 import com.motocrashguardian.emergency.SmsDispatcher
 import com.motocrashguardian.emergency.SmsTransport
 import com.motocrashguardian.emergency.platform.AndroidCallPermission
@@ -31,6 +31,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
+import java.time.Duration
 import javax.inject.Singleton
 
 @Module
@@ -75,13 +76,19 @@ object EmergencyDispatchModule {
 
     @Provides
     @Singleton
-    fun provideLocationAcquirer(@ApplicationContext context: Context): LocationAcquirer =
-        LocationAcquirer(
-            scope = CoroutineScope(SupervisorJob() + Dispatchers.Default),
-            phoneSource = FusedPhoneLocationSource(context),
-            lastKnownSource = FusedLastKnownLocationSource(context),
-            deviceGps = NoDeviceGpsSource()
+    fun provideLocationAcquirer(deviceRepository: DeviceRepository): LocationAcquirer {
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+        // Sin permiso de ubicación del teléfono: el NEO-6M del módulo es la única fuente.
+        val moduleGps = ModuleGpsLocationSource(deviceRepository.gps, scope)
+        return LocationAcquirer(
+            scope = scope,
+            phoneSource = PhoneLocationSource { null },
+            lastKnownSource = moduleGps,
+            deviceGps = moduleGps,
+            // docs/00: el fix del NEO-6M vale como "GPS de la moto" si tiene < 60 s.
+            deviceFixMaxAge = Duration.ofSeconds(60)
         )
+    }
 
     @Provides
     @Singleton

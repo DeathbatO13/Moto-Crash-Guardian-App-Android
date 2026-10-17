@@ -18,8 +18,8 @@ import java.util.UUID
 /**
  * Cliente GATT del módulo (docs/03, ADR-002). Extiende [BleManager] de
  * Nordic BLE-KTX: la librería maneja la cola de requests, el descubrimiento
- * de servicios y el bonding (el módulo inicia cifrado Just Works al conectar,
- * docs/03 §2, así que no hace falta diálogo de emparejamiento).
+ * de servicios y la reconexión. El MVP no exige cifrado (docs/03 §2): ninguna
+ * característica pide emparejamiento, así que no aparece diálogo de bonding.
  *
  * Expone tramas crudas ([ByteArray]); la decodificación a modelos de dominio
  * vive en [DeviceRepository] sobre `BleProtocol`.
@@ -138,8 +138,8 @@ class GuardianBleManager(context: Context) : BleManager(context) {
 
     /**
      * Conecta a una dirección MAC y suspende hasta que el módulo está listo
-     * (servicios descubiertos e inicialización completa). El bonding
-     * Just Works ocurre de forma automática (docs/03 §2).
+     * (servicios descubiertos e inicialización completa). No requiere
+     * bonding (docs/03 §2).
      */
     suspend fun connectToDevice(address: String) {
         val bluetoothManager =

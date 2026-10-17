@@ -94,7 +94,8 @@ fun AppNavigation(
             HomeScreen(
                 modifier = Modifier.fillMaxSize(),
                 onOpenHistory = { navController.navigate(Route.HISTORY) },
-                onOpenPrivacy = { navController.navigate(Route.PRIVACY) }
+                onOpenPrivacy = { navController.navigate(Route.PRIVACY) },
+                onNavigateToPairing = { navController.navigate(Route.PAIRING) }
             )
         }
         composable(Route.HISTORY) {

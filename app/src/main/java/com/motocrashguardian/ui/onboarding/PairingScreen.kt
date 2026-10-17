@@ -1,9 +1,16 @@
 package com.motocrashguardian.ui.onboarding
 
 import android.app.Activity
-import android.companion.CompanionDeviceManager
 import android.bluetooth.BluetoothDevice
+import android.bluetooth.le.ScanResult
+import android.companion.AssociationInfo
+import android.companion.CompanionDeviceManager
+import android.content.Context
+import android.content.ContextWrapper
+import android.content.Intent
 import android.os.Build
+import android.os.Parcelable
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -45,8 +52,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -55,9 +64,39 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.motocrashguardian.R
 
 /**
+ * Función de utilidad para encontrar la Activity real desde el contexto de Compose.
+ * Necesario porque LocalContext.current puede devolver un ContextWrapper.
+ */
+fun Context.findActivity(): Activity? {
+    var context = this
+    while (context is ContextWrapper) {
+        if (context is Activity) return context
+        context = context.baseContext
+    }
+    return null
+}
+
+/**
+ * Dirección MAC elegida en el selector de CDM. Con un filtro BLE,
+ * [CompanionDeviceManager.EXTRA_DEVICE] trae un [ScanResult], no un
+ * [BluetoothDevice]; desde API 33 también viene [AssociationInfo].
+ */
+private fun Intent.associatedDeviceAddress(): String? {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        getParcelableExtra(CompanionDeviceManager.EXTRA_ASSOCIATION, AssociationInfo::class.java)
+            ?.deviceMacAddress?.toString()?.uppercase()
+            ?.let { return it }
+    }
+    @Suppress("DEPRECATION")
+    return when (val extra = getParcelableExtra<Parcelable>(CompanionDeviceManager.EXTRA_DEVICE)) {
+        is ScanResult -> extra.device.address
+        is BluetoothDevice -> extra.address
+        else -> null
+    }
+}
+
+/**
  * S-04 Pantalla de emparejamiento.
- * Se añadió la opción de omitir para que no sea obligatorio
- * conectar el dispositivo para terminar el onboarding.
  */
 @Composable
 fun PairingScreen(
@@ -66,21 +105,21 @@ fun PairingScreen(
     viewModel: PairingViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    val activity = remember(context) { context.findActivity() }
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartIntentSenderForResult()
     ) { result ->
+        Log.d("PairingScreen", "Resultado del selector: ${result.resultCode}")
         if (result.resultCode == Activity.RESULT_OK) {
-            val device = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                result.data?.getParcelableExtra(
-                    CompanionDeviceManager.EXTRA_DEVICE,
-                    BluetoothDevice::class.java
-                )
+            val address = result.data?.associatedDeviceAddress()
+            if (address != null) {
+                viewModel.onDeviceSelected(address)
             } else {
-                @Suppress("DEPRECATION")
-                result.data?.getParcelableExtra(CompanionDeviceManager.EXTRA_DEVICE)
+                Log.e("PairingScreen", "El selector no devolvió la dirección del módulo")
+                viewModel.reset()
             }
-            device?.address?.let { viewModel.onDeviceSelected(it) }
         } else {
             viewModel.reset()
         }
@@ -89,7 +128,13 @@ fun PairingScreen(
     LaunchedEffect(uiState) {
         if (uiState is PairingUiState.DeviceFound) {
             val sender = (uiState as PairingUiState.DeviceFound).intentSender
-            launcher.launch(IntentSenderRequest.Builder(sender).build())
+            Log.d("PairingScreen", "Lanzando IntentSender...")
+            try {
+                launcher.launch(IntentSenderRequest.Builder(sender).build())
+            } catch (e: Exception) {
+                Log.e("PairingScreen", "Error al lanzar IntentSender", e)
+                viewModel.reset()
+            }
         }
     }
 
@@ -108,7 +153,10 @@ fun PairingScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            TextButton(onClick = onBack, enabled = uiState !is PairingUiState.Searching) {
+            TextButton(
+                onClick = onBack,
+                enabled = uiState !is PairingUiState.Searching && uiState !is PairingUiState.Connecting
+            ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = null,
@@ -144,8 +192,9 @@ fun PairingScreen(
         ) {
             when (uiState) {
                 PairingUiState.Idle -> IdleContent()
-                PairingUiState.Searching -> SearchingContent()
-                is PairingUiState.DeviceFound -> SearchingContent()
+                PairingUiState.Searching -> SearchingContent(stringResource(R.string.pairing_searching))
+                is PairingUiState.DeviceFound -> SearchingContent("Abriendo selector de dispositivos...")
+                PairingUiState.Connecting -> SearchingContent("Conectando con el módulo…")
                 PairingUiState.Success -> SuccessContent()
                 is PairingUiState.Error -> ErrorContent((uiState as PairingUiState.Error).message)
             }
@@ -156,10 +205,11 @@ fun PairingScreen(
         // 4. Acciones
         PairingActions(
             uiState = uiState,
-            onStart = { viewModel.startPairing() },
+            onStart = { activity?.let { viewModel.startPairing(it) } },
             onFinish = onFinish,
-            onRetry = { viewModel.startPairing() },
-            onSkip = { viewModel.completeWithoutPairing() }
+            onRetry = { activity?.let { viewModel.startPairing(it) } },
+            onSkip = { viewModel.completeWithoutPairing() },
+            onCancel = { viewModel.reset() }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -237,12 +287,12 @@ private fun IdleContent() {
 }
 
 @Composable
-private fun SearchingContent() {
+private fun SearchingContent(text: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         CircularProgressIndicator(modifier = Modifier.size(64.dp))
         Spacer(modifier = Modifier.height(24.dp))
         Text(
-            text = stringResource(R.string.pairing_searching),
+            text = text,
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center
         )
@@ -261,12 +311,22 @@ private fun SuccessContent() {
 
 @Composable
 private fun ErrorContent(message: String) {
-    Icon(
-        imageVector = Icons.Default.Error,
-        contentDescription = null,
-        modifier = Modifier.size(120.dp),
-        tint = MaterialTheme.colorScheme.errorContainer
-    )
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Icon(
+            imageVector = Icons.Default.Error,
+            contentDescription = null,
+            modifier = Modifier.size(120.dp),
+            tint = MaterialTheme.colorScheme.error
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.error,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+    }
 }
 
 @Composable
@@ -275,7 +335,8 @@ private fun PairingActions(
     onStart: () -> Unit,
     onFinish: () -> Unit,
     onRetry: () -> Unit,
-    onSkip: () -> Unit
+    onSkip: () -> Unit,
+    onCancel: () -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         when (uiState) {
@@ -295,8 +356,11 @@ private fun PairingActions(
                     Text(text = "OMITIR POR AHORA")
                 }
             }
+            PairingUiState.Connecting -> Unit
             PairingUiState.Searching, is PairingUiState.DeviceFound -> {
-                // Diálogo del sistema activo
+                TextButton(onClick = onCancel, modifier = Modifier.fillMaxWidth()) {
+                    Text(text = "CANCELAR")
+                }
             }
             PairingUiState.Success -> {
                 Button(
@@ -331,32 +395,22 @@ private fun InfoCard() {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerLowest
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.Top
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 imageVector = Icons.Default.Info,
                 contentDescription = null,
-                modifier = Modifier.size(24.dp),
                 tint = MaterialTheme.colorScheme.primary
             )
-            Spacer(modifier = Modifier.width(12.dp))
-            Column {
-                Text(
-                    text = stringResource(R.string.pairing_info_title),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = stringResource(R.string.pairing_info_body),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text(
+                text = "Para vincular el dispositivo, asegúrate de que esté encendido y cerca de tu teléfono.",
+                style = MaterialTheme.typography.bodySmall
+            )
         }
     }
 }

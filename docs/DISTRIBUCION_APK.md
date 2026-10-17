@@ -65,7 +65,7 @@ adb install -r moto-crash-guardian-0.1.0.apk
 Despues de instalar, conceder los permisos desde el asistente de la app. Verificar en *Ajustes → Apps → SafeRide*:
 
 - Notificaciones activadas y, en Android 14+, *Intents de pantalla completa* permitidos (la app debe comprobarlo con `NotificationManager.canUseFullScreenIntent()`).
-- SMS, Telefono, Ubicacion y Dispositivos cercanos concedidos.
+- SMS, Telefono y Dispositivos cercanos concedidos. La app no pide ubicacion: la posicion del SMS sale del GPS NEO-6M del modulo.
 - Bateria sin restricciones (algunos fabricantes, como Xiaomi o Samsung, matan el servicio en segundo plano si no).
 
 Las variantes `debug` (`com.motocrashguardian.debug`) y `release` (`com.motocrashguardian`) pueden convivir en el mismo telefono.

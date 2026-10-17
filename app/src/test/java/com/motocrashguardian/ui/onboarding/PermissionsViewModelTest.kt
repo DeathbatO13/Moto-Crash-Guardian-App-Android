@@ -76,8 +76,6 @@ class PermissionsViewModelTest {
         Manifest.permission.POST_NOTIFICATIONS to true,
         Manifest.permission.BLUETOOTH_SCAN to true,
         Manifest.permission.BLUETOOTH_CONNECT to true,
-        Manifest.permission.ACCESS_FINE_LOCATION to true,
-        Manifest.permission.ACCESS_COARSE_LOCATION to true,
         Manifest.permission.SEND_SMS to true,
         Manifest.permission.CALL_PHONE to true
     )

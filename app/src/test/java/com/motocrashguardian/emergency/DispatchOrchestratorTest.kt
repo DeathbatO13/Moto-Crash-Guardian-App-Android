@@ -53,6 +53,23 @@ class DispatchOrchestratorTest {
     }
 
     @Test
+    fun `contactos guardados sin +57 reciben SMS y llamada en E164`() = runTest {
+        val local = settings(
+            primary = primary.copy(phoneE164 = "300 111 2233"),
+            secondary = secondary.copy(phoneE164 = "3004445566")
+        )
+
+        val outcome = orchestrator(local).dispatch(realIncident())
+
+        assertEquals(IncidentStatus.DISPATCHED, outcome.status)
+        assertEquals(
+            setOf("+573001112233", "+573004445566"),
+            sentMessages.map { it.first }.toSet()
+        )
+        assertEquals(listOf("+573001112233"), placedCalls)
+    }
+
+    @Test
     fun `el SMS sale antes que la llamada`() = runTest {
         orchestrator(settings()).dispatch(realIncident())
 
@@ -132,7 +149,7 @@ class DispatchOrchestratorTest {
 
     @Test
     fun `telefono invalido en un contacto se marca fallido sin abortar el resto`() = runTest {
-        val broken = secondary.copy(phoneE164 = "3004445566")
+        val broken = secondary.copy(phoneE164 = "12345")
 
         val outcome = orchestrator(settings(secondary = broken)).dispatch(realIncident())
 
