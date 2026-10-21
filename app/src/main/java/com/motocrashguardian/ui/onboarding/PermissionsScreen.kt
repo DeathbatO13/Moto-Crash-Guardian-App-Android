@@ -59,9 +59,6 @@ import com.motocrashguardian.R
 
 /**
  * S-03 Asistente de permisos.
- * 
- * Se eliminó la petición de ubicación del teléfono ya que el sistema
- * usa el GPS del dispositivo físico SafeRide.
  */
 @Composable
 fun PermissionsScreen(
@@ -98,7 +95,6 @@ fun PermissionsScreen(
     ) {
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 1. Barra superior
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -117,7 +113,7 @@ fun PermissionsScreen(
                 onClick = {},
                 label = {
                     Text(
-                        text = "PASO 3 DE 4 · PERMISOS",
+                        text = "PASO 4 DE 5 · PERMISOS",
                         style = MaterialTheme.typography.labelSmall
                     )
                 }
@@ -126,7 +122,6 @@ fun PermissionsScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // 2. Encabezado
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 imageVector = Icons.Default.Security,
@@ -149,15 +144,13 @@ fun PermissionsScreen(
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "La app necesita estos permisos para gestionar la comunicación de emergencia. " +
-                "La ubicación se obtiene directamente de tu dispositivo SafeRide.",
+            text = "La app necesita estos permisos para gestionar la comunicación de emergencia y la conexión con el sensor.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // 3. Progreso de los P0
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
@@ -190,7 +183,6 @@ fun PermissionsScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // 4. Permisos P0
         Text(
             text = "PERMISOS NECESARIOS",
             style = MaterialTheme.typography.labelSmall,
@@ -217,7 +209,6 @@ fun PermissionsScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // 5. Permisos especiales
         SpecialRow(
             icon = Icons.Default.Fullscreen,
             title = "Pantalla completa",
@@ -232,7 +223,6 @@ fun PermissionsScreen(
             }
         )
 
-        // 6. OEM
         if (viewModel.isAggressiveOem) {
             Spacer(modifier = Modifier.height(12.dp))
             OemCard()
@@ -240,7 +230,6 @@ fun PermissionsScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // 7. Acciones
         Button(
             onClick = onContinue,
             enabled = allRequiredGranted,
@@ -296,7 +285,7 @@ private fun permissionGroups(): List<PermissionGroup> = buildList {
     add(
         PermissionGroup(
             title = "Dispositivos cercanos",
-            rationale = "Para conectar con el módulo BLE de la moto.",
+            rationale = "Para conectar con el sensor de la moto.",
             icon = Icons.Default.Bluetooth,
             permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 listOf(
@@ -337,8 +326,10 @@ private fun PermissionRow(
     onGrant: () -> Unit,
     onOpenSettings: () -> Unit
 ) {
+    if (group.permissions.isEmpty()) return
+    
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
         shape = RoundedCornerShape(12.dp),
         color = MaterialTheme.colorScheme.surfaceContainer
     ) {
@@ -424,7 +415,7 @@ private fun SpecialRow(
     status: String
 ) {
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
         shape = RoundedCornerShape(12.dp),
         color = MaterialTheme.colorScheme.surfaceContainer
     ) {
@@ -475,7 +466,7 @@ private fun BatteryRow(
     onOpenBatterySettings: () -> Unit
 ) {
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
         shape = RoundedCornerShape(12.dp),
         color = MaterialTheme.colorScheme.surfaceContainer
     ) {
@@ -525,7 +516,7 @@ private fun BatteryRow(
 @Composable
 private fun OemCard() {
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
         shape = RoundedCornerShape(12.dp),
         color = MaterialTheme.colorScheme.surfaceContainerLowest
     ) {

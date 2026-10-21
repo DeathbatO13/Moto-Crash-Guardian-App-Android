@@ -19,8 +19,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ContactPhone
 import androidx.compose.material.icons.filled.Gavel
 import androidx.compose.material.icons.filled.HealthAndSafety
@@ -82,7 +82,7 @@ fun ConsentScreen(
         ) {
             TextButton(onClick = onBack) {
                 Icon(
-                    imageVector = Icons.Filled.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = null,
                     modifier = Modifier.size(18.dp)
                 )
@@ -93,7 +93,7 @@ fun ConsentScreen(
                 onClick = {},
                 label = {
                     Text(
-                        text = "PASO 2 DE 4 · PRIVACIDAD",
+                        text = "PASO 2 DE 5 · PRIVACIDAD",
                         style = MaterialTheme.typography.labelSmall
                     )
                 }
@@ -125,7 +125,7 @@ fun ConsentScreen(
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "SafeRide procesa tu telemetría en el " +
+            text = "Safe Ride procesa tu telemetría en el " +
                 "dispositivo y el ESP32. Tus incidentes y ajustes se " +
                 "sincronizan con nuestro servidor (Render, EE. UU.) " +
                 "para tu historial.",
@@ -268,7 +268,7 @@ fun ConsentScreen(
                     Text(
                         text = "Autorizo el tratamiento de mis datos " +
                             "únicamente para las funciones de protección " +
-                            "y auxilio vial de SafeRide.",
+                            "y auxilio vial de Safe Ride.",
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.weight(1f)
                     )
@@ -289,7 +289,7 @@ fun ConsentScreen(
             Text(text = "ACEPTO")
             Spacer(modifier = Modifier.width(8.dp))
             Icon(
-                imageVector = Icons.Filled.ArrowForward,
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                 contentDescription = null,
                 modifier = Modifier.size(20.dp)
             )

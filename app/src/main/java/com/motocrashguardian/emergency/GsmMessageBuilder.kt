@@ -17,25 +17,25 @@ class GsmMessageBuilder {
 
         val message = when (location) {
             is EmergencyMessageLocation.PhoneFix -> {
-                "ALERTA MOTO CRASH: posible accidente de $name. Ubicacion: " +
+                "ALERTA SAFE RIDE: posible accidente de $name. Ubicacion: " +
                     "${mapsUrl(location.latitude, location.longitude)} " +
                     "(+/-${location.accuracyMeters}m ${formatTime(location.localTime)}). " +
                     "Mensaje automatico."
             }
             is EmergencyMessageLocation.DeviceGpsFix -> {
-                "ALERTA MOTO CRASH: posible accidente de $name. Ubicacion: " +
+                "ALERTA SAFE RIDE: posible accidente de $name. Ubicacion: " +
                     "${mapsUrl(location.latitude, location.longitude)} " +
                     "(GPS moto ${formatTime(location.localTime)}). Mensaje automatico."
             }
             is EmergencyMessageLocation.LastKnownFix -> {
                 require(location.ageMinutes >= 0) { "Location age cannot be negative." }
-                "ALERTA MOTO CRASH: posible accidente de $name. Ultima ubicacion conocida " +
+                "ALERTA SAFE RIDE: posible accidente de $name. Ultima ubicacion conocida " +
                     "(hace ${location.ageMinutes} min): " +
                     "${mapsUrl(location.latitude, location.longitude)} " +
                     "(${formatTime(location.localTime)}). Mensaje automatico."
             }
             is EmergencyMessageLocation.Unavailable -> {
-                "ALERTA MOTO CRASH: posible accidente de $name. Ubicacion no disponible. " +
+                "ALERTA SAFE RIDE: posible accidente de $name. Ubicacion no disponible. " +
                     "Hora ${formatTime(location.localTime)}. Mensaje automatico."
             }
         }

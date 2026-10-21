@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.motocrashguardian.ble.DeviceConnectionState
 import com.motocrashguardian.ble.DeviceRepository
+import com.motocrashguardian.ble.protocol.BleProtocol
 import com.motocrashguardian.core.model.AppSettings
 import com.motocrashguardian.core.model.ContactRole
 import com.motocrashguardian.core.model.EmergencyContact
@@ -17,6 +18,8 @@ import com.motocrashguardian.emergency.DemoModeController
 import com.motocrashguardian.emergency.DemoState
 import com.motocrashguardian.emergency.DrillOutcome
 import com.motocrashguardian.emergency.DrillStarter
+import com.motocrashguardian.emergency.PhoneNumberNormalizer
+import com.motocrashguardian.emergency.toE164OrRaw
 import com.motocrashguardian.service.GuardianService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -31,13 +34,15 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val deviceRepository: DeviceRepository,
     private val settingsRepository: SettingsRepository,
     private val stateMachine: GuardianStateMachine,
     private val drillStarter: DrillStarter,
     private val demoMode: DemoModeController
 ) : ViewModel() {
+
+    private val phoneNormalizer = PhoneNumberNormalizer()
 
     private val mutableDrill = MutableStateFlow<DrillUiState>(DrillUiState.Idle)
     val drill: StateFlow<DrillUiState> = mutableDrill.asStateFlow()
@@ -76,9 +81,20 @@ class HomeViewModel @Inject constructor(
 
     val guardianState: StateFlow<GuardianState> = stateMachine.state
 
+    private val mutableTare = MutableStateFlow(TareStatus.IDLE)
+    /** Resultado del último TARE: el módulo responde BUSY si no estuvo quieto 1 s. */
+    val tareStatus: StateFlow<TareStatus> = mutableTare.asStateFlow()
+
     fun tare() {
+        if (mutableTare.value == TareStatus.WORKING) return
+        mutableTare.value = TareStatus.WORKING
         viewModelScope.launch {
-            runCatching { deviceRepository.tare() }
+            val result = runCatching { deviceRepository.tare().result }.getOrNull()
+            mutableTare.value = when (result) {
+                BleProtocol.RESULT_OK -> TareStatus.DONE
+                BleProtocol.RESULT_BUSY -> TareStatus.NOT_STILL
+                else -> TareStatus.FAILED
+            }
         }
     }
 
@@ -123,9 +139,18 @@ class HomeViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             settingsRepository.updateSettings { current ->
-                val primary = EmergencyContact(ContactRole.PRIMARY, primaryName, primaryPhone)
+                // Se guarda en E.164 (+57…): lo exigen el despacho y el backend.
+                val primary = EmergencyContact(
+                    ContactRole.PRIMARY,
+                    primaryName,
+                    phoneNormalizer.toE164OrRaw(primaryPhone)
+                )
                 val secondary = if (secondaryName.isNotBlank() || secondaryPhone.isNotBlank()) {
-                    EmergencyContact(ContactRole.SECONDARY, secondaryName, secondaryPhone)
+                    EmergencyContact(
+                        ContactRole.SECONDARY,
+                        secondaryName,
+                        phoneNormalizer.toE164OrRaw(secondaryPhone)
+                    )
                 } else {
                     null
                 }
@@ -159,3 +184,5 @@ class HomeViewModel @Inject constructor(
         }
     }
 }
+
+enum class TareStatus { IDLE, WORKING, DONE, NOT_STILL, FAILED }

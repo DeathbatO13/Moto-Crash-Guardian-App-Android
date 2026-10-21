@@ -20,12 +20,6 @@ import javax.inject.Inject
 
 /**
  * S-03 Asistente de permisos. 
- * 
- * Se han removido:
- * 1. Ubicación (los datos vienen del hardware).
- * 2. Bluetooth (se pedirá solo en el paso de vinculación).
- * 
- * Esto permite avanzar en el onboarding sin fricción inicial.
  */
 @HiltViewModel
 class PermissionsViewModel @Inject constructor(
@@ -47,7 +41,7 @@ class PermissionsViewModel @Inject constructor(
     }
 
     fun refresh() {
-        _granted.value = requiredPermissions().filter { isGranted(it) }.toSet()
+        _granted.value = allPossiblePermissions().filter { isGranted(it) }.toSet()
         _batteryUnrestricted.value = isBatteryUnrestricted()
         recomputeRequired()
     }
@@ -90,17 +84,24 @@ class PermissionsViewModel @Inject constructor(
         (context.getSystemService(Context.POWER_SERVICE) as PowerManager)
             .isIgnoringBatteryOptimizations(context.packageName)
 
-    /**
-     * P0 mínimos obligatorios: Notificaciones, SMS y Llamadas.
-     * Bluetooth y Ubicación ya no son obligatorios aquí.
-     */
-    private fun requiredPermissions(): List<String> = buildList {
+    /** Todos los permisos que la pantalla puede pedir o mostrar. */
+    private fun allPossiblePermissions(): List<String> = buildList {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             add(Manifest.permission.POST_NOTIFICATIONS)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            add(Manifest.permission.BLUETOOTH_SCAN)
+            add(Manifest.permission.BLUETOOTH_CONNECT)
+        } else {
+            add(Manifest.permission.BLUETOOTH)
+            add(Manifest.permission.BLUETOOTH_ADMIN)
         }
         add(Manifest.permission.SEND_SMS)
         add(Manifest.permission.CALL_PHONE)
     }
+
+    /** Permisos críticos para poder continuar. */
+    private fun requiredPermissions(): List<String> = allPossiblePermissions()
 
     companion object {
         private val AGGRESSIVE_OEMS = listOf("xiaomi", "oppo", "realme", "vivo", "huawei", "samsung")

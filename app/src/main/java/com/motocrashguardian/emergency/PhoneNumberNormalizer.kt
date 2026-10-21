@@ -76,6 +76,13 @@ class PhoneNumberNormalizer {
     }
 }
 
+/**
+ * E.164 si el número es válido (p. ej. `3001112233` → `+573001112233`); si no,
+ * el texto tal cual, para que el despacho lo reporte como destino inválido.
+ */
+fun PhoneNumberNormalizer.toE164OrRaw(input: String): String =
+    (normalize(input) as? PhoneNumberNormalization.Valid)?.e164 ?: input.trim()
+
 sealed interface PhoneNumberNormalization {
     data class Valid(val e164: String) : PhoneNumberNormalization
 

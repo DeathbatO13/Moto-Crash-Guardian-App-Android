@@ -2,17 +2,23 @@ package com.motocrashguardian.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
+// --- Colores constantes usados en la UI ---
+val PrimaryBlue = Color(0xFF4DB6E1)
+val SecondaryBlue = Color(0xFF0B6E99)
+val AlertRed = Color(0xFFFFB4AB)
+val AlertRedContainer = Color(0xFF5A1018)
+
 // --- Tema oscuro (paleta basada en la imagen de referencia) ---
 internal val DarkBackground = Color(0xFF0F1115)
 internal val DarkSurface = Color(0xFF1B1F23)
 internal val DarkSurfaceVariant = Color(0xFF2C3136)
 internal val DarkSurfaceHigh = Color(0xFF262B30)
-internal val DarkPrimary = Color(0xFF4DB6E1)
+internal val DarkPrimary = PrimaryBlue
 internal val DarkPrimaryContainer = Color(0xFF0E4A63)
 internal val DarkOnPrimaryContainer = Color(0xFFBDE6F7)
 internal val DarkSecondaryContainer = Color(0xFF22404F)
 internal val DarkOnSecondaryContainer = Color(0xFFD6EEF8)
-internal val DarkError = Color(0xFFF2B8B5)
+internal val DarkError = AlertRed
 internal val DarkOnError = Color(0xFF601410)
 internal val DarkTextPrimary = Color(0xFFE1E1E1)
 internal val DarkTextSecondary = Color(0xFFB0B0B0)
@@ -24,7 +30,7 @@ internal val LightBackground = Color(0xFFF4F7FA)
 internal val LightSurface = Color(0xFFFFFFFF)
 internal val LightSurfaceVariant = Color(0xFFE3EAF0)
 internal val LightSurfaceHigh = Color(0xFFEEF2F6)
-internal val LightPrimary = Color(0xFF0B6E99)
+internal val LightPrimary = SecondaryBlue
 internal val LightPrimaryContainer = Color(0xFFCDE8F5)
 internal val LightOnPrimaryContainer = Color(0xFF003A52)
 internal val LightSecondaryContainer = Color(0xFFD6E4F0)

@@ -24,7 +24,7 @@ class GsmMessageBuilderTest {
         )
 
         assertEquals(
-            "ALERTA MOTO CRASH: posible accidente de Daniel. Ubicacion: " +
+            "ALERTA SAFE RIDE: posible accidente de Daniel. Ubicacion: " +
                 "https://maps.google.com/?q=4.927597,-74.020355 (+/-8m 16:43). " +
                 "Mensaje automatico.",
             message
@@ -73,7 +73,7 @@ class GsmMessageBuilderTest {
         )
 
         assertEquals(
-            "ALERTA MOTO CRASH: posible accidente de Nora. Ubicacion no disponible. " +
+            "ALERTA SAFE RIDE: posible accidente de Nora. Ubicacion no disponible. " +
                 "Hora 16:43. Mensaje automatico.",
             message
         )

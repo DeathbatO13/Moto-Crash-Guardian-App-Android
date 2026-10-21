@@ -3,6 +3,7 @@ package com.motocrashguardian.service
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder
+import android.util.Log
 import com.motocrashguardian.R
 import com.motocrashguardian.ble.DeviceConnectionState
 import com.motocrashguardian.ble.DeviceRepository
@@ -12,12 +13,18 @@ import com.motocrashguardian.ui.alert.AlertActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
-import com.motocrashguardian.detection.GuardianEffect
+import com.motocrashguardian.detection.GuardianState
 
 /**
  * Foreground service que mantiene viva la conexión BLE con el módulo durante
@@ -41,6 +48,10 @@ class GuardianService : Service() {
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private lateinit var notifications: GuardianNotifications
 
+    /** Bucle que mantiene la conexión con [connectedAddress]; uno solo a la vez. */
+    private var connectionJob: Job? = null
+    private var connectedAddress: String? = null
+
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onCreate() {
@@ -55,7 +66,7 @@ class GuardianService : Service() {
         observeConnection()
         observeTelemetry()
         observeEvents()
-        observeStateMachineEffects()
+        openAlertOnCountdown()
         
         serviceScope.launch {
             stateMachine.restore()
@@ -75,8 +86,9 @@ class GuardianService : Service() {
     }
 
     override fun onDestroy() {
-        deviceRepository.disconnect()
+        // Primero se detiene el bucle, para que no reconecte tras desconectar.
         serviceScope.cancel()
+        deviceRepository.disconnect()
         stopForeground(STOP_FOREGROUND_REMOVE)
         super.onDestroy()
     }
@@ -88,7 +100,7 @@ class GuardianService : Service() {
                 stopSelf()
                 return@launch
             }
-            runCatching { deviceRepository.connect(address) }
+            keepConnected(address)
         }
     }
 
@@ -96,10 +108,36 @@ class GuardianService : Service() {
         serviceScope.launch {
             val settings = settingsRepository.settings.first()
             if (settings.tripActive || settings.onboardingCompleted) {
-                val address = settings.pairedDeviceAddress
-                if (address != null) {
-                    runCatching { deviceRepository.connect(address) }
+                settings.pairedDeviceAddress?.let(::keepConnected)
+            }
+        }
+    }
+
+    /**
+     * Conecta y reconecta al módulo mientras el servicio viva (docs/03 §6,
+     * reconexión ≤ 10 s). Si ya se mantiene esa misma dirección no hace nada;
+     * si cambió (p. ej. se vinculó otro módulo) suelta la conexión anterior.
+     */
+    private fun keepConnected(address: String) {
+        if (connectionJob?.isActive == true && connectedAddress == address) return
+        val previous = connectionJob
+        connectedAddress = address
+        connectionJob = serviceScope.launch {
+            previous?.cancel()
+            if (deviceRepository.connectionState.value != DeviceConnectionState.DISCONNECTED) {
+                deviceRepository.disconnect()
+                withTimeoutOrNull(DISCONNECT_TIMEOUT_MS) {
+                    deviceRepository.connectionState.first { it == DeviceConnectionState.DISCONNECTED }
                 }
+            }
+            while (true) {
+                if (deviceRepository.connectionState.value == DeviceConnectionState.DISCONNECTED) {
+                    runCatching { deviceRepository.connect(address) }
+                        .onFailure { Log.w(TAG, "No se pudo conectar con el módulo: ${it.message}") }
+                }
+                // Tras un fallo esto vuelve de inmediato; conectado, espera a perder el enlace.
+                deviceRepository.connectionState.first { it == DeviceConnectionState.DISCONNECTED }
+                delay(RECONNECT_DELAY_MS)
             }
         }
     }
@@ -133,19 +171,27 @@ class GuardianService : Service() {
         }
     }
 
-    private fun observeStateMachineEffects() {
+    /**
+     * Abre la pantalla de alerta al empezar una cuenta regresiva. Observa `state`
+     * y NO `effects`: ese canal entrega cada efecto a un solo consumidor y es de
+     * EmergencyFlowController (alarma, notificación y despacho). La vía principal
+     * es el full-screen intent de la notificación; esto solo ayuda con la app
+     * visible (Android bloquea abrir actividades desde segundo plano).
+     */
+    private fun openAlertOnCountdown() {
         serviceScope.launch {
-            stateMachine.effects.collect { effect ->
-                when (effect) {
-                    is GuardianEffect.CountdownStarted -> {
-                        val intent = Intent(this@GuardianService, AlertActivity::class.java).apply {
-                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        }
-                        startActivity(intent)
-                    }
-                    else -> { /* El envío de SMS/Llamada es gestionado por EmergencyFlowController */ }
+            stateMachine.state
+                .map { (it as? GuardianState.Countdown)?.incident?.id }
+                .distinctUntilChanged()
+                .filterNotNull()
+                .collect {
+                    runCatching {
+                        startActivity(
+                            Intent(this@GuardianService, AlertActivity::class.java)
+                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        )
+                    }.onFailure { Log.w(TAG, "No se pudo abrir la alerta: ${it.message}") }
                 }
-            }
         }
     }
 
@@ -158,7 +204,10 @@ class GuardianService : Service() {
     }
 
     companion object {
+        private const val TAG = "GuardianService"
         private const val NOTIFICATION_ID = 1
+        private const val RECONNECT_DELAY_MS = 3_000L
+        private const val DISCONNECT_TIMEOUT_MS = 5_000L
         const val ACTION_CONNECT = "com.motocrashguardian.action.CONNECT"
         const val ACTION_DISCONNECT = "com.motocrashguardian.action.DISCONNECT"
     }
