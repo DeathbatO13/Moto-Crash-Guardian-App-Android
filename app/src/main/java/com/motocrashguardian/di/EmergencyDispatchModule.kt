@@ -12,9 +12,11 @@ import com.motocrashguardian.emergency.EmergencyFlowController
 import com.motocrashguardian.emergency.GsmMessageBuilder
 import com.motocrashguardian.emergency.LocationAcquirer
 import com.motocrashguardian.emergency.ModuleGpsLocationSource
-import com.motocrashguardian.emergency.PhoneLocationSource
 import com.motocrashguardian.ble.DeviceRepository
+import com.motocrashguardian.emergency.newestLastKnown
 import com.motocrashguardian.emergency.platform.AndroidAlarmOutput
+import com.motocrashguardian.emergency.platform.FusedLastKnownLocationSource
+import com.motocrashguardian.emergency.platform.FusedPhoneLocationSource
 import com.motocrashguardian.emergency.platform.GuardianAlertNotifications
 import com.motocrashguardian.emergency.SmsDispatcher
 import com.motocrashguardian.emergency.SmsTransport
@@ -76,14 +78,17 @@ object EmergencyDispatchModule {
 
     @Provides
     @Singleton
-    fun provideLocationAcquirer(deviceRepository: DeviceRepository): LocationAcquirer {
+    fun provideLocationAcquirer(
+        @ApplicationContext context: Context,
+        deviceRepository: DeviceRepository
+    ): LocationAcquirer {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-        // Sin permiso de ubicación del teléfono: el NEO-6M del módulo es la única fuente.
+        // Primero el NEO-6M del módulo; si no envía datos o no tiene fix, el GPS del teléfono.
         val moduleGps = ModuleGpsLocationSource(deviceRepository.gps, scope)
         return LocationAcquirer(
             scope = scope,
-            phoneSource = PhoneLocationSource { null },
-            lastKnownSource = moduleGps,
+            phoneSource = FusedPhoneLocationSource(context),
+            lastKnownSource = newestLastKnown(moduleGps, FusedLastKnownLocationSource(context)),
             deviceGps = moduleGps,
             // docs/00: el fix del NEO-6M vale como "GPS de la moto" si tiene < 60 s.
             deviceFixMaxAge = Duration.ofSeconds(60)

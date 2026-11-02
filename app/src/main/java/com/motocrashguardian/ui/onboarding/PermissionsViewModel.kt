@@ -96,6 +96,9 @@ class PermissionsViewModel @Inject constructor(
             add(Manifest.permission.BLUETOOTH)
             add(Manifest.permission.BLUETOOTH_ADMIN)
         }
+        // Respaldo del GPS del módulo para la ubicación del SMS de emergencia.
+        add(Manifest.permission.ACCESS_FINE_LOCATION)
+        add(Manifest.permission.ACCESS_COARSE_LOCATION)
         add(Manifest.permission.SEND_SMS)
         add(Manifest.permission.CALL_PHONE)
     }

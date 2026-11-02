@@ -12,8 +12,8 @@ import java.time.Instant
 /**
  * Ubicación desde el GPS NEO-6M del módulo (característica BLE `GPS`, docs/03 §4.6).
  *
- * La app no pide permiso de ubicación del teléfono: esta es la única fuente. Guarda el
- * último fix válido con su instante real, así sigue disponible aunque el módulo se
+ * Es la fuente preferida; el GPS del teléfono queda de respaldo cuando el módulo no envía
+ * datos o no tiene fix (ver [LocationAcquirer]). Guarda el último fix válido con su instante real, así sigue disponible aunque el módulo se
  * desconecte tras el choque. [LocationAcquirer] lo usa como "GPS de la moto" mientras
  * es reciente y, si ya es viejo, como "última ubicación conocida".
  */

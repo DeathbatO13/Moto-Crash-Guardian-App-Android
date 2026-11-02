@@ -31,6 +31,7 @@ import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Fullscreen
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Security
@@ -298,6 +299,18 @@ private fun permissionGroups(): List<PermissionGroup> = buildList {
                     Manifest.permission.BLUETOOTH_ADMIN
                 )
             }
+        )
+    )
+    add(
+        PermissionGroup(
+            title = "Ubicación",
+            rationale = "Respaldo del GPS del sensor: si no tiene señal, el SMS de emergencia " +
+                "lleva la ubicación del celular.",
+            icon = Icons.Default.LocationOn,
+            permissions = listOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            )
         )
     )
     add(
