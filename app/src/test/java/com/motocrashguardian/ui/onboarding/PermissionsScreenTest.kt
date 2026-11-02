@@ -41,6 +41,7 @@ class PermissionsScreenTest {
         composeRule.onNodeWithText("Notificaciones").assertIsDisplayed()
         composeRule.onNodeWithText("Dispositivos cercanos")
             .assertIsDisplayed()
+        composeRule.onNodeWithText("Ubicación").assertIsDisplayed()
         composeRule.onNodeWithText("SMS").assertIsDisplayed()
         composeRule.onNodeWithText("Llamadas").assertIsDisplayed()
         composeRule.onNodeWithText("Pantalla completa")
@@ -80,6 +81,8 @@ class PermissionsScreenTest {
                 Manifest.permission.POST_NOTIFICATIONS to true,
                 Manifest.permission.BLUETOOTH_SCAN to true,
                 Manifest.permission.BLUETOOTH_CONNECT to true,
+                Manifest.permission.ACCESS_FINE_LOCATION to true,
+                Manifest.permission.ACCESS_COARSE_LOCATION to true,
                 Manifest.permission.SEND_SMS to true,
                 Manifest.permission.CALL_PHONE to true
             )

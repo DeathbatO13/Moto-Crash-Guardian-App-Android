@@ -52,8 +52,26 @@ class LocationAcquirerTest {
     )
 
     @Test
-    fun `prefiere el GPS del telefono sobre la moto y la ultima conocida`() = runTest {
+    fun `prefiere el GPS reciente de la moto sobre el telefono y la ultima conocida`() = runTest {
         val acquirer = acquirer()
+        acquirer.begin()
+        runCurrent()
+
+        assertEquals(device, acquirer.finish())
+    }
+
+    @Test
+    fun `si el modulo no envia datos usa el GPS del telefono`() = runTest {
+        val acquirer = acquirer(deviceGps = { null })
+        acquirer.begin()
+        runCurrent()
+
+        assertEquals(phone, acquirer.finish())
+    }
+
+    @Test
+    fun `si el GPS de la moto esta desactualizado usa el GPS del telefono`() = runTest {
+        val acquirer = acquirer(deviceGps = { device.copy(fixAt = now.minusSeconds(60)) })
         acquirer.begin()
         runCurrent()
 
@@ -206,10 +224,13 @@ class LocationAcquirerTest {
     @Test
     fun `begin reinicia la busqueda anterior`() = runTest {
         var calls = 0
-        val acquirer = acquirer(phoneSource = {
-            calls++
-            phone
-        })
+        val acquirer = acquirer(
+            phoneSource = {
+                calls++
+                phone
+            },
+            deviceGps = { null }
+        )
         acquirer.begin()
         runCurrent()
         acquirer.begin()
@@ -217,6 +238,34 @@ class LocationAcquirerTest {
 
         assertEquals(2, calls)
         assertEquals(phone, acquirer.finish())
+    }
+
+    @Test
+    fun `si no habia ultima conocida al comenzar la vuelve a pedir al despachar`() = runTest {
+        var calls = 0
+        val acquirer = acquirer(
+            phoneSource = { null },
+            deviceGps = { null },
+            lastKnownSource = { if (calls++ == 0) null else lastKnown }
+        )
+        acquirer.begin()
+        runCurrent()
+
+        assertEquals(lastKnown, acquirer.finish())
+    }
+
+    @Test
+    fun `newestLastKnown entrega la mas reciente e ignora fuentes que fallan`() = runTest {
+        val older = lastKnown.copy(latitude = 4.0, fixAt = now.minusSeconds(3_600))
+        val combined = newestLastKnown(
+            { older },
+            { throw SecurityException("sin permiso") },
+            { lastKnown },
+            { null }
+        )
+
+        assertEquals(lastKnown, combined.lastKnown())
+        assertNull(newestLastKnown({ null }).lastKnown())
     }
 
     @Test

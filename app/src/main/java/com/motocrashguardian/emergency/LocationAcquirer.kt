@@ -37,9 +37,11 @@ fun interface DeviceGpsSource {
 /**
  * Reune la mejor ubicacion posible durante la cuenta regresiva.
  *
- * Prioridad: GPS del telefono > GPS de la moto (reciente) > ultima ubicacion conocida (no
- * demasiado vieja) > ninguna. [begin] arranca la busqueda al comenzar la cuenta y [finish] entrega
- * el resultado al despachar, esperando solo un margen corto si todavia no hay nada mejor.
+ * Prioridad: GPS de la moto (reciente) > GPS del telefono > ultima ubicacion conocida (no
+ * demasiado vieja) > ninguna. El NEO-6M del modulo va primero, pero a veces no envia datos o no
+ * tiene fix; por eso el GPS del telefono se pide en paralelo desde [begin] y queda de respaldo.
+ * [begin] arranca la busqueda al comenzar la cuenta y [finish] entrega el resultado al despachar,
+ * esperando solo un margen corto si todavia no hay nada.
  *
  * Los umbrales por defecto son supuestos razonables: el documento de requisitos con los valores
  * definitivos de frescura y timeouts no esta en este repositorio.
@@ -91,12 +93,16 @@ class LocationAcquirer(
     }
 
     private suspend fun resolve(current: Cycle): LocationFix? {
-        readyPhoneFix(current)?.let { return it }
         freshDeviceFix()?.let { return it }
-        // Aun no hay nada mejor: dar un margen corto al GPS del telefono antes de rendirse.
+        readyPhoneFix(current)?.let { return it }
+        // Aun no hay nada: dar un margen corto al GPS del telefono antes de rendirse.
         withTimeoutOrNull(firstFixGraceMillis) { current.phone.await() }?.let { return it }
         freshDeviceFix()?.let { return it }
-        val lastKnown = withTimeoutOrNull(firstFixGraceMillis) { current.lastKnown.await() }
+        // Al despachar la alerta ya esta en pantalla; si al comenzar la cuenta no habia
+        // ultima ubicacion (app en segundo plano), se vuelve a preguntar una vez.
+        val lastKnown = withTimeoutOrNull(firstFixGraceMillis) {
+            current.lastKnown.await() ?: safely { lastKnownSource.lastKnown() }
+        }
         return lastKnown?.takeIf { Duration.between(it.fixAt, clock.instant()) <= lastKnownMaxAge }
     }
 
@@ -123,6 +129,23 @@ class LocationAcquirer(
         }
 
 }
+
+/**
+ * Combina varias fuentes de "ultima ubicacion conocida" (ultimo fix del modulo y ultima
+ * posicion del telefono) y entrega la mas reciente. Una fuente que falla no anula a las demas.
+ */
+fun newestLastKnown(vararg sources: LastKnownLocationSource): LastKnownLocationSource =
+    LastKnownLocationSource {
+        sources.mapNotNull { source ->
+            try {
+                source.lastKnown()
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Exception) {
+                null
+            }
+        }.maxByOrNull { it.fixAt }
+    }
 
 /** Copia los datos de ubicacion al incidente; sin ubicacion nueva conserva lo que ya tenia. */
 fun Incident.withFix(fix: LocationFix?): Incident = if (fix == null) {
